@@ -193,7 +193,11 @@
     opacity: 0.45;
     transition: opacity 0.15s ease;
   }
-  .item.row-hovered .item-update-btn {
+  /* The button only brightens on its own direct hover -- not just from
+     being anywhere in the row -- separate from the row's own white
+     highlight (.row-hovered above), which stays lit the whole time
+     regardless of whether the button itself is also being hovered. */
+  .item-update-btn:hover {
     opacity: 1;
   }
 

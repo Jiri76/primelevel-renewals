@@ -41,11 +41,10 @@
   }
 
   /* The "+" trigger never moves and never hides -- it stays anchored in
-     this exact spot at all times. Clicking it opens the add-popover as a
-     floating window over the list (see below), instead of replacing the
-     trigger or pushing the list down. */
+     this exact spot at all times. Clicking it opens the add-popover in
+     normal page flow, right underneath -- it pushes the list down rather
+     than floating over it, so it never overlaps the first item. */
   .add-wrapper {
-    position: relative;
     margin-bottom: 40px;
   }
   .add-trigger {
@@ -67,22 +66,14 @@
   }
   .add-trigger:hover { opacity: 1; }
 
-  /* Floating window, anchored just below the "+" -- overlays the list
-     rather than sitting inline in the page flow, so nothing else on the
-     page shifts while it's open. */
   .add-popover {
     display: none;
     flex-direction: column;
-    position: absolute;
-    top: 44px;
-    left: 0;
-    width: 100%;
+    margin-top: 12px;
     background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 16px 18px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    z-index: 20;
   }
   .add-popover.open { display: flex; }
   .add-row {
@@ -396,11 +387,15 @@
       return `${days} day${days === 1 ? '' : 's'} to go`;
     }
 
+    // Newest-added first, not soonest-expiring first -- a just-added item
+    // always lands as the very first row, right under "+", and stays there
+    // permanently (editing it later doesn't move it, since only created_at
+    // determines position, never updated_at).
     async function loadItems() {
       const { data, error } = await supabase
         .from('renewal_items')
         .select('*')
-        .order('expiry_date', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) {
         itemList.innerHTML = '<div class="empty-state">Could not load renewals. Please refresh.</div>';

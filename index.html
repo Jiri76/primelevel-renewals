@@ -47,6 +47,7 @@
     border-radius: 10px;
     padding: 16px;
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     align-items: center;
     margin-bottom: 40px;
@@ -63,6 +64,12 @@
   .add-card input::placeholder { color: var(--placeholder); }
   #newItemName { flex: 1; min-width: 0; }
   #newItemDate { flex: 0 0 auto; color-scheme: dark; }
+  .date-error {
+    color: var(--red);
+    font-size: 13px;
+    margin-top: 6px;
+    flex-basis: 100%;
+  }
   #addBtn {
     display: none;
     flex: 0 0 auto;
@@ -168,6 +175,7 @@
       <input id="newItemName" type="text" placeholder="e.g. Passport, Car Insurance" autocomplete="off" />
       <input id="newItemDate" type="date" />
       <button id="addBtn" title="Add">+</button>
+      <div class="date-error" id="addDateError"></div>
     </div>
 
     <div id="itemList"></div>
@@ -184,7 +192,25 @@
     const nameInput = document.getElementById('newItemName');
     const dateInput = document.getElementById('newItemDate');
     const addBtn = document.getElementById('addBtn');
+    const addDateError = document.getElementById('addDateError');
     const itemList = document.getElementById('itemList');
+
+    // Native date inputs don't cap the year sub-field at 4 digits in every
+    // browser -- min/max plus this explicit check are what actually stop
+    // something like "275760" from being entered at all.
+    const MIN_YEAR = new Date().getFullYear() - 10;
+    const MAX_YEAR = new Date().getFullYear() + 50;
+    function setDateBounds(el) {
+      el.min = `${MIN_YEAR}-01-01`;
+      el.max = `${MAX_YEAR}-12-31`;
+    }
+    setDateBounds(dateInput);
+
+    function isValidDate(dateStr) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+      const year = Number(dateStr.slice(0, 4));
+      return year >= MIN_YEAR && year <= MAX_YEAR;
+    }
 
     // "+" only appears while this card is actually being used -- keeps the
     // page showing nothing but the renewal list itself the rest of the time.
@@ -272,11 +298,21 @@
       const dateEl = document.createElement('input');
       dateEl.type = 'date';
       dateEl.value = item.expiry_date;
+      setDateBounds(dateEl);
 
       const saveEl = document.createElement('button');
       saveEl.textContent = 'Save';
+
+      const errorEl = document.createElement('div');
+      errorEl.className = 'date-error';
+
       saveEl.addEventListener('click', async () => {
+        errorEl.textContent = '';
         if (!dateEl.value) return;
+        if (!isValidDate(dateEl.value)) {
+          errorEl.textContent = 'Please check your date.';
+          return;
+        }
         const { error } = await supabase
           .from('renewal_items')
           .update({ expiry_date: dateEl.value, updated_at: new Date().toISOString(), notified_at: null })
@@ -284,15 +320,20 @@
         if (!error) loadItems();
       });
 
-      renewRow.append(dateEl, saveEl);
+      renewRow.append(dateEl, saveEl, errorEl);
       row.replaceChild(renewRow, countdown);
       updatedBtn.remove();
     }
 
     addBtn.addEventListener('click', async () => {
+      addDateError.textContent = '';
       const name = nameInput.value.trim();
       const date = dateInput.value;
       if (!name || !date) return;
+      if (!isValidDate(date)) {
+        addDateError.textContent = 'Please check your date.';
+        return;
+      }
 
       const { error } = await supabase
         .from('renewal_items')

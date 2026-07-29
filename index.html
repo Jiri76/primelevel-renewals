@@ -40,9 +40,14 @@
     margin: 0 0 32px;
   }
 
-  /* Collapsed by default -- just a minimal "+" trigger, so the dashboard
-     opens showing nothing but the list itself. Expands into the real
-     add-card only once clicked. */
+  /* The "+" trigger never moves and never hides -- it stays anchored in
+     this exact spot at all times. Clicking it opens the add-popover as a
+     floating window over the list (see below), instead of replacing the
+     trigger or pushing the list down. */
+  .add-wrapper {
+    position: relative;
+    margin-bottom: 40px;
+  }
   .add-trigger {
     display: flex;
     align-items: center;
@@ -59,33 +64,41 @@
     cursor: pointer;
     opacity: 0.6;
     transition: opacity 0.15s ease;
-    margin-bottom: 40px;
   }
   .add-trigger:hover { opacity: 1; }
-  .add-trigger.hidden { display: none; }
 
-  /* Add-new-item card -- same padding AND same fixed height as .item below,
-     so both read as genuinely identical, not just close. Height has to be
-     forced explicitly: the <input> elements inside carry their own extra
-     internal padding on top of the container's, which otherwise makes this
-     card taller than a plain item row even with matching container padding. */
-  .add-card {
+  /* Floating window, anchored just below the "+" -- overlays the list
+     rather than sitting inline in the page flow, so nothing else on the
+     page shifts while it's open. */
+  .add-popover {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 44px;
+    left: 0;
+    width: 100%;
     background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 16px 18px;
-    height: 64px;
-    display: none;
-    flex-wrap: nowrap;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    z-index: 20;
   }
-  .add-card.expanded { display: flex; }
+  .add-popover.open { display: flex; }
+  .add-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .add-fields {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
   /* Same thin 1px border-color swap as the dashboard's own inputs -- a
      real border that's just transparent-ish by default, not a heavier
      box-shadow ring, so the highlight reads as the same thickness. */
-  .add-card input {
+  .add-popover input {
     background: transparent;
     border: 1px solid transparent;
     border-radius: 4px;
@@ -95,7 +108,7 @@
     padding: 8px 4px;
     outline: none;
   }
-  .add-card input::placeholder { color: var(--placeholder); }
+  .add-popover input::placeholder { color: var(--placeholder); }
   input:focus {
     outline: none;
     border-color: var(--white);
@@ -112,23 +125,21 @@
     margin-top: 6px;
     flex-basis: 100%;
   }
-  #addBtn {
-    display: none;
+  /* Same box model as .item-update-btn (same "size"), same gold-fill/white
+     text as the edit panel's Save button (same color language), flush to
+     the right edge of the row -- same anchoring as Update on every item row. */
+  .add-save-btn {
     flex: 0 0 auto;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
     background: var(--gold);
-    color: var(--navy);
-    font-size: 20px;
+    color: var(--white);
+    border: none;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 700;
-    line-height: 1;
+    font-size: 13px;
+    border-radius: 6px;
+    padding: 6px 12px;
     cursor: pointer;
-    align-items: center;
-    justify-content: center;
   }
-  .add-card.active #addBtn { display: flex; }
 
   /* Item list -- urgency is shown purely through the countdown text color
      (see .item-countdown below), not a separate border stripe -- one clean
@@ -257,12 +268,18 @@
   <div class="container">
     <h1>Renewals</h1>
 
-    <button class="add-trigger" id="addTrigger" title="Add a renewal">+</button>
-    <div class="add-card" id="addCard">
-      <input id="newItemName" type="text" placeholder="e.g. Passport, Car Insurance" autocomplete="off" />
-      <input id="newItemDate" type="text" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" autocomplete="off" />
-      <button id="addBtn" title="Add">+</button>
-      <div class="date-error" id="addDateError"></div>
+    <div class="add-wrapper">
+      <button class="add-trigger" id="addTrigger" title="Add a renewal">+</button>
+      <div class="add-popover" id="addPopover">
+        <div class="add-row">
+          <div class="add-fields">
+            <input id="newItemName" type="text" placeholder="e.g. Passport, Car Insurance" autocomplete="off" />
+            <input id="newItemDate" type="text" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" autocomplete="off" />
+          </div>
+          <button id="addBtn" class="add-save-btn">Save</button>
+        </div>
+        <div class="date-error" id="addDateError"></div>
+      </div>
     </div>
 
     <div id="itemList"></div>
@@ -276,35 +293,42 @@
     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
     const addTrigger = document.getElementById('addTrigger');
-    const addCard = document.getElementById('addCard');
+    const addPopover = document.getElementById('addPopover');
     const nameInput = document.getElementById('newItemName');
     const dateInput = document.getElementById('newItemDate');
     const addBtn = document.getElementById('addBtn');
     const addDateError = document.getElementById('addDateError');
     const itemList = document.getElementById('itemList');
 
-    // Collapsed to a minimal "+" by default -- the dashboard opens showing
-    // nothing but the list itself. Expands into the real add-card on tap,
-    // and auto-collapses again after 60s of inactivity so it doesn't sit
-    // open forever if you got distracted mid-entry.
+    // The "+" trigger stays put at all times -- opening the popover never
+    // hides or moves it. Auto-closes after 60s of inactivity so it doesn't
+    // sit open forever if you got distracted mid-entry, and closes on any
+    // click outside it too.
     let collapseTimer = null;
     function collapseAddCard() {
-      addCard.classList.remove('expanded');
-      addTrigger.classList.remove('hidden');
+      addPopover.classList.remove('open');
       nameInput.value = '';
       dateInput.value = '';
       addDateError.textContent = '';
-      refreshAddCardState();
+      clearTimeout(collapseTimer);
     }
     function resetCollapseTimer() {
       clearTimeout(collapseTimer);
       collapseTimer = setTimeout(collapseAddCard, 60000);
     }
     addTrigger.addEventListener('click', () => {
-      addTrigger.classList.add('hidden');
-      addCard.classList.add('expanded');
+      if (addPopover.classList.contains('open')) {
+        collapseAddCard();
+        return;
+      }
+      addPopover.classList.add('open');
       nameInput.focus();
       resetCollapseTimer();
+    });
+    document.addEventListener('click', (e) => {
+      if (!addPopover.classList.contains('open')) return;
+      if (addPopover.contains(e.target) || addTrigger.contains(e.target)) return;
+      collapseAddCard();
     });
 
     // Hard-coded DD/MM/YYYY entry, same pattern as the VAT/sort-code fields
@@ -348,26 +372,10 @@
       return `${d}/${m}/${y}`;
     }
 
-    // "+" only appears while this card is actually being used -- keeps the
-    // page showing nothing but the renewal list itself the rest of the time.
-    function refreshAddCardState() {
-      const active = document.activeElement === nameInput ||
-        document.activeElement === dateInput ||
-        nameInput.value.trim() !== '' ||
-        dateInput.value !== '';
-      addCard.classList.toggle('active', active);
-    }
-    nameInput.addEventListener('focus', refreshAddCardState);
-    dateInput.addEventListener('focus', refreshAddCardState);
-    nameInput.addEventListener('input', refreshAddCardState);
-    dateInput.addEventListener('input', refreshAddCardState);
     nameInput.addEventListener('input', resetCollapseTimer);
     dateInput.addEventListener('input', resetCollapseTimer);
     nameInput.addEventListener('focus', resetCollapseTimer);
     dateInput.addEventListener('focus', resetCollapseTimer);
-    document.addEventListener('click', (e) => {
-      if (!addCard.contains(e.target)) refreshAddCardState();
-    });
 
     function daysUntil(dateStr) {
       const today = new Date();

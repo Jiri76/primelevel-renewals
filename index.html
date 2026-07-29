@@ -309,7 +309,7 @@
     // sit open forever if you got distracted mid-entry, and closes on any
     // click outside it too.
     let collapseTimer = null;
-    function collapseAddCard() {
+    function closeAddPopover() {
       addPopover.classList.remove('open');
       nameInput.value = '';
       dateInput.value = '';
@@ -318,11 +318,11 @@
     }
     function resetCollapseTimer() {
       clearTimeout(collapseTimer);
-      collapseTimer = setTimeout(collapseAddCard, 60000);
+      collapseTimer = setTimeout(closeAddPopover, 60000);
     }
     addTrigger.addEventListener('click', () => {
       if (addPopover.classList.contains('open')) {
-        collapseAddCard();
+        closeAddPopover();
         return;
       }
       addPopover.classList.add('open');
@@ -332,7 +332,7 @@
     document.addEventListener('click', (e) => {
       if (!addPopover.classList.contains('open')) return;
       if (addPopover.contains(e.target) || addTrigger.contains(e.target)) return;
-      collapseAddCard();
+      closeAddPopover();
     });
 
     // Hard-coded DD/MM/YYYY entry, same pattern as the VAT/sort-code fields
@@ -546,7 +546,7 @@
 
       if (!error) {
         clearTimeout(collapseTimer);
-        collapseAddCard();
+        closeAddPopover();
         loadItems();
       }
     });

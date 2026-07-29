@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Renewals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  /* Same locked design tokens as the rest of PrimeLevel's dashboard tools. */
+  :root {
+    --navy: #1E2633;
+    --white: #F9F9FA;
+    --gold: #B29B68;
+    --input-bg: #2A3441;
+    --placeholder: #8A93A3;
+    --border: #3A4453;
+    --green: #4CAF7D;
+    --orange: #D9A441;
+    --red: #E45858;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--navy);
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100%;
+  }
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+  h1 {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 32px;
+    margin: 0 0 32px;
+  }
+
+  /* Add-new-item card */
+  .add-card {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+  .add-card input {
+    background: transparent;
+    border: none;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    padding: 8px 4px;
+    outline: none;
+  }
+  .add-card input::placeholder { color: var(--placeholder); }
+  #newItemName { flex: 1; min-width: 0; }
+  #newItemDate { flex: 0 0 auto; color-scheme: dark; }
+  #addBtn {
+    display: none;
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--gold);
+    color: var(--navy);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+  }
+  .add-card.active #addBtn { display: flex; }
+
+  /* Item list */
+  .item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    margin-bottom: 12px;
+    border-left: 4px solid var(--item-color);
+  }
+  .item-name {
+    color: var(--white);
+    font-weight: 700;
+    font-size: 16px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .item-countdown {
+    color: var(--item-color);
+    font-weight: 700;
+    font-size: 15px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .item-updated-btn {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--placeholder);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .item-updated-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  .renew-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .renew-row input {
+    background: var(--navy);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    padding: 6px 8px;
+    color-scheme: dark;
+  }
+  .renew-row button {
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    border-radius: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+
+  .empty-state {
+    color: var(--placeholder);
+    font-size: 15px;
+    text-align: center;
+    padding: 40px 0;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Renewals</h1>
+
+    <div class="add-card" id="addCard">
+      <input id="newItemName" type="text" placeholder="e.g. Passport, Car Insurance" autocomplete="off" />
+      <input id="newItemDate" type="date" />
+      <button id="addBtn" title="Add">+</button>
+    </div>
+
+    <div id="itemList"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const SUPABASE_URL = 'https://kenlhcatkjthhzuaznpg.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_-gt5PPGL45s3hRsfOosH6g_q3yP-b-_';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    const addCard = document.getElementById('addCard');
+    const nameInput = document.getElementById('newItemName');
+    const dateInput = document.getElementById('newItemDate');
+    const addBtn = document.getElementById('addBtn');
+    const itemList = document.getElementById('itemList');
+
+    // "+" only appears while this card is actually being used -- keeps the
+    // page showing nothing but the renewal list itself the rest of the time.
+    function refreshAddCardState() {
+      const active = document.activeElement === nameInput ||
+        document.activeElement === dateInput ||
+        nameInput.value.trim() !== '' ||
+        dateInput.value !== '';
+      addCard.classList.toggle('active', active);
+    }
+    nameInput.addEventListener('focus', refreshAddCardState);
+    dateInput.addEventListener('focus', refreshAddCardState);
+    nameInput.addEventListener('input', refreshAddCardState);
+    dateInput.addEventListener('input', refreshAddCardState);
+    document.addEventListener('click', (e) => {
+      if (!addCard.contains(e.target)) refreshAddCardState();
+    });
+
+    function daysUntil(dateStr) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(dateStr + 'T00:00:00');
+      return Math.round((target - today) / 86400000);
+    }
+
+    function colorFor(days) {
+      if (days <= 7) return 'var(--red)';
+      if (days <= 30) return 'var(--orange)';
+      return 'var(--green)';
+    }
+
+    function countdownText(days) {
+      if (days < 0) return `${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} overdue`;
+      if (days === 0) return 'Due today';
+      return `${days} day${days === 1 ? '' : 's'} to go`;
+    }
+
+    async function loadItems() {
+      const { data, error } = await supabase
+        .from('renewal_items')
+        .select('*')
+        .order('expiry_date', { ascending: true });
+
+      if (error) {
+        itemList.innerHTML = '<div class="empty-state">Could not load renewals. Please refresh.</div>';
+        return;
+      }
+      renderItems(data);
+    }
+
+    function renderItems(items) {
+      itemList.innerHTML = '';
+      if (!items.length) {
+        itemList.innerHTML = '<div class="empty-state">Nothing tracked yet — add your first renewal above.</div>';
+        return;
+      }
+      for (const item of items) {
+        const days = daysUntil(item.expiry_date);
+        const row = document.createElement('div');
+        row.className = 'item';
+        row.style.setProperty('--item-color', colorFor(days));
+
+        const name = document.createElement('div');
+        name.className = 'item-name';
+        name.textContent = item.item_name;
+
+        const countdown = document.createElement('div');
+        countdown.className = 'item-countdown';
+        countdown.textContent = countdownText(days);
+
+        const updatedBtn = document.createElement('button');
+        updatedBtn.className = 'item-updated-btn';
+        updatedBtn.textContent = 'Updated';
+        updatedBtn.addEventListener('click', () => showRenewRow(row, item, countdown, updatedBtn));
+
+        row.append(name, countdown, updatedBtn);
+        itemList.append(row);
+      }
+    }
+
+    function showRenewRow(row, item, countdown, updatedBtn) {
+      const renewRow = document.createElement('div');
+      renewRow.className = 'renew-row';
+
+      const dateEl = document.createElement('input');
+      dateEl.type = 'date';
+      dateEl.value = item.expiry_date;
+
+      const saveEl = document.createElement('button');
+      saveEl.textContent = 'Save';
+      saveEl.addEventListener('click', async () => {
+        if (!dateEl.value) return;
+        const { error } = await supabase
+          .from('renewal_items')
+          .update({ expiry_date: dateEl.value, updated_at: new Date().toISOString(), notified_at: null })
+          .eq('id', item.id);
+        if (!error) loadItems();
+      });
+
+      renewRow.append(dateEl, saveEl);
+      row.replaceChild(renewRow, countdown);
+      updatedBtn.remove();
+    }
+
+    addBtn.addEventListener('click', async () => {
+      const name = nameInput.value.trim();
+      const date = dateInput.value;
+      if (!name || !date) return;
+
+      const { error } = await supabase
+        .from('renewal_items')
+        .insert({ item_name: name, expiry_date: date });
+
+      if (!error) {
+        nameInput.value = '';
+        dateInput.value = '';
+        refreshAddCardState();
+        loadItems();
+      }
+    });
+
+    loadItems();
+  </script>
+</body>
+</html>

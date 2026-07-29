@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-<title>PrimeLevel Renewals</title>
+<title>Renewals</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
@@ -64,12 +64,13 @@
   .add-trigger:hover { opacity: 1; }
   .add-trigger.hidden { display: none; }
 
-  /* Add-new-item card */
+  /* Add-new-item card -- same padding as .item below so both read as the
+     exact same width, not just visually close. */
   .add-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 16px;
+    padding: 16px 18px;
     display: none;
     flex-wrap: wrap;
     gap: 10px;
@@ -87,8 +88,16 @@
     outline: none;
   }
   .add-card input::placeholder { color: var(--placeholder); }
+  /* Any field, anywhere on the page, gets this same thin white highlight
+     the moment you click into it -- one consistent "you're inside this
+     field now" signal used everywhere, not a per-form one-off. */
+  input:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--white);
+    border-radius: 4px;
+  }
   #newItemName { flex: 1; min-width: 0; }
-  #newItemDate { flex: 0 0 auto; color-scheme: dark; }
+  #newItemDate { flex: 0 0 auto; width: 110px; }
   .date-error {
     color: var(--red);
     font-size: 13px;
@@ -143,15 +152,15 @@
     flex: 0 0 auto;
     white-space: nowrap;
   }
-  /* White outline + white text, matching the app's secondary-button style
-     -- not gold, since gold is reserved for the single primary action.
-     Dimmed until the row is actually hovered, so a long list doesn't read
-     as a wall of bold buttons -- only "Confirm?" stays fully lit, since
-     that's an active state needing attention regardless of hover. */
-  .item-updated-btn,
-  .item-delete-btn {
+  /* Single action on the collapsed row -- white outline + white text,
+     the same secondary-button language used everywhere else on the page.
+     Dimmed until the row is hovered, so a long list doesn't read as a
+     wall of bold buttons. */
+  .item-update-btn {
     flex: 0 0 auto;
     background: transparent;
+    border: 1px solid var(--white);
+    color: var(--white);
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     font-size: 13px;
@@ -161,38 +170,24 @@
     opacity: 0.45;
     transition: opacity 0.15s ease;
   }
-  .item:hover .item-updated-btn,
-  .item:hover .item-delete-btn {
-    opacity: 1;
-  }
-  /* When one action on a row is active (Delete armed to "Confirm?", or
-     Updated switched into its renew form), the other action dims down
-     regardless of hover -- only one action should read as "live" at a
-     time on a given row. */
-  .item-updated-btn.forced-dim,
-  .item-delete-btn.forced-dim {
-    opacity: 0.2 !important;
-  }
-  .item-updated-btn {
-    border: 1px solid var(--white);
-    color: var(--white);
-  }
-  .item-delete-btn {
-    border: 1px solid var(--border);
-    color: var(--placeholder);
-  }
-  .item-delete-btn.confirming {
-    border-color: var(--red);
-    color: var(--red);
+  .item:hover .item-update-btn {
     opacity: 1;
   }
 
-  .renew-row {
+  /* Edit panel -- opens in place of the countdown once "Update" is tapped.
+     Same input styling everywhere (see input:focus above), same button
+     language as the rest of the page: gold fill for the one primary
+     action (Save), red outline for the destructive one (Delete) -- no
+     two-step confirm needed here, since reaching Delete already required
+     the deliberate "Update" tap first. */
+  .edit-panel {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+    flex: 1;
   }
-  .renew-row input {
+  .edit-panel input {
     background: var(--navy);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -200,13 +195,10 @@
     font-family: 'Montserrat', sans-serif;
     font-size: 13px;
     padding: 6px 8px;
-    color-scheme: dark;
   }
-  /* Same primary-button styling as the dashboard's "Create Profile" button
-     -- gold fill, white text, not navy text. */
-  .renew-row button {
-    background: var(--gold);
-    color: var(--white);
+  #editName { flex: 1; min-width: 100px; }
+  #editDate { flex: 0 0 auto; width: 100px; }
+  .edit-panel button {
     border: none;
     border-radius: 6px;
     font-family: 'Montserrat', sans-serif;
@@ -214,6 +206,12 @@
     font-size: 13px;
     padding: 7px 12px;
     cursor: pointer;
+  }
+  .edit-save-btn { background: var(--gold); color: var(--white); }
+  .edit-delete-btn {
+    background: transparent;
+    border: 1px solid var(--red) !important;
+    color: var(--red);
   }
 
   .empty-state {
@@ -226,12 +224,12 @@
 </head>
 <body>
   <div class="container">
-    <h1>PrimeLevel Renewals</h1>
+    <h1>Renewals</h1>
 
     <button class="add-trigger" id="addTrigger" title="Add a renewal">+</button>
     <div class="add-card" id="addCard">
       <input id="newItemName" type="text" placeholder="e.g. Passport, Car Insurance" autocomplete="off" />
-      <input id="newItemDate" type="date" />
+      <input id="newItemDate" type="text" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" autocomplete="off" />
       <button id="addBtn" title="Add">+</button>
       <div class="date-error" id="addDateError"></div>
     </div>
@@ -278,21 +276,45 @@
       resetCollapseTimer();
     });
 
-    // Native date inputs don't cap the year sub-field at 4 digits in every
-    // browser -- min/max plus this explicit check are what actually stop
-    // something like "275760" from being entered at all.
-    const MIN_YEAR = new Date().getFullYear() - 10;
-    const MAX_YEAR = new Date().getFullYear() + 50;
-    function setDateBounds(el) {
-      el.min = `${MIN_YEAR}-01-01`;
-      el.max = `${MAX_YEAR}-12-31`;
+    // Hard-coded DD/MM/YYYY entry, same pattern as the VAT/sort-code fields
+    // elsewhere -- no native date picker at all. Auto-formats as you type
+    // (digits only, slashes inserted automatically), and only accepts a
+    // genuinely valid calendar date on submit.
+    function formatDateInput(raw) {
+      const digits = raw.replace(/\D/g, '').slice(0, 8); // DDMMYYYY
+      if (digits.length > 4) return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+      if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+      return digits;
     }
-    setDateBounds(dateInput);
+    function attachDateFormatting(el) {
+      el.addEventListener('input', () => {
+        el.value = formatDateInput(el.value);
+      });
+    }
+    attachDateFormatting(dateInput);
 
-    function isValidDate(dateStr) {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
-      const year = Number(dateStr.slice(0, 4));
-      return year >= MIN_YEAR && year <= MAX_YEAR;
+    // Year must be exactly 4 digits starting with "20" (2000-2099) --
+    // matches the explicit rule given, not an arbitrary +/- window.
+    // Returns the ISO (YYYY-MM-DD) string for storage, or null if invalid --
+    // also rejects real calendar impossibilities like 30/02, not just
+    // out-of-range day/month numbers.
+    function parseDDMMYYYY(str) {
+      const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(str);
+      if (!m) return null;
+      const day = Number(m[1]);
+      const month = Number(m[2]);
+      const yearStr = m[3];
+      if (month < 1 || month > 12) return null;
+      if (day < 1 || day > 31) return null;
+      if (!/^20\d{2}$/.test(yearStr)) return null;
+      const year = Number(yearStr);
+      const d = new Date(year, month - 1, day);
+      if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null;
+      return `${yearStr}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+    function isoToDDMMYYYY(iso) {
+      const [y, m, d] = iso.split('-');
+      return `${d}/${m}/${y}`;
     }
 
     // "+" only appears while this card is actually being used -- keeps the
@@ -314,17 +336,6 @@
     dateInput.addEventListener('focus', resetCollapseTimer);
     document.addEventListener('click', (e) => {
       if (!addCard.contains(e.target)) refreshAddCardState();
-      // Clicking anywhere other than an armed delete button itself cancels
-      // it back to "Delete" -- otherwise there was no way out of "Confirm?"
-      // once armed, short of actually deleting or reloading the page.
-      document.querySelectorAll('.item-delete-btn.confirming').forEach((btn) => {
-        if (btn !== e.target) {
-          btn.classList.remove('confirming');
-          btn.textContent = 'Delete';
-          const row = btn.closest('.item');
-          row?.querySelector('.item-updated-btn')?.classList.remove('forced-dim');
-        }
-      });
     });
 
     function daysUntil(dateStr) {
@@ -379,80 +390,94 @@
         countdown.className = 'item-countdown';
         countdown.textContent = countdownText(days);
 
-        const updatedBtn = document.createElement('button');
-        updatedBtn.className = 'item-updated-btn';
-        updatedBtn.textContent = 'Updated';
-        updatedBtn.addEventListener('click', () => {
-          row.querySelector('.item-delete-btn')?.classList.add('forced-dim');
-          showRenewRow(row, item, countdown, updatedBtn);
-        });
+        const updateBtn = document.createElement('button');
+        updateBtn.className = 'item-update-btn';
+        updateBtn.textContent = 'Update';
+        updateBtn.addEventListener('click', () => showEditPanel(row, item, name, countdown, updateBtn));
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'item-delete-btn';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', async () => {
-          if (!deleteBtn.classList.contains('confirming')) {
-            deleteBtn.classList.add('confirming');
-            deleteBtn.textContent = 'Confirm?';
-            updatedBtn.classList.add('forced-dim');
-            return;
-          }
-          const { error } = await supabase.from('renewal_items').delete().eq('id', item.id);
-          if (!error) loadItems();
-        });
-
-        row.append(name, countdown, updatedBtn, deleteBtn);
+        row.append(name, countdown, updateBtn);
         itemList.append(row);
       }
     }
 
-    function showRenewRow(row, item, countdown, updatedBtn) {
-      const renewRow = document.createElement('div');
-      renewRow.className = 'renew-row';
+    // Single edit surface for a row -- name, date, Save, and Delete all
+    // together, opened by the one "Update" button. Delete here is a direct
+    // action (no separate arm/confirm step): getting here already required
+    // the deliberate tap on "Update" first, so that's the real gate.
+    function showEditPanel(row, item, name, countdown, updateBtn) {
+      const panel = document.createElement('div');
+      panel.className = 'edit-panel';
+
+      const nameEl = document.createElement('input');
+      nameEl.type = 'text';
+      nameEl.id = 'editName';
+      nameEl.value = item.item_name;
+      nameEl.autocomplete = 'off';
 
       const dateEl = document.createElement('input');
-      dateEl.type = 'date';
-      dateEl.value = item.expiry_date;
-      setDateBounds(dateEl);
+      dateEl.type = 'text';
+      dateEl.id = 'editDate';
+      dateEl.inputMode = 'numeric';
+      dateEl.placeholder = 'DD/MM/YYYY';
+      dateEl.maxLength = 10;
+      dateEl.autocomplete = 'off';
+      dateEl.value = isoToDDMMYYYY(item.expiry_date);
+      attachDateFormatting(dateEl);
 
-      const saveEl = document.createElement('button');
-      saveEl.textContent = 'Save';
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'edit-save-btn';
+      saveBtn.textContent = 'Save';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'edit-delete-btn';
+      deleteBtn.textContent = 'Delete';
 
       const errorEl = document.createElement('div');
       errorEl.className = 'date-error';
 
-      saveEl.addEventListener('click', async () => {
+      saveBtn.addEventListener('click', async () => {
         errorEl.textContent = '';
-        if (!dateEl.value) return;
-        if (!isValidDate(dateEl.value)) {
+        const newName = nameEl.value.trim();
+        if (!newName) {
+          errorEl.textContent = 'Name is required.';
+          return;
+        }
+        const isoDate = parseDDMMYYYY(dateEl.value);
+        if (!isoDate) {
           errorEl.textContent = 'Please check your date.';
           return;
         }
         const { error } = await supabase
           .from('renewal_items')
-          .update({ expiry_date: dateEl.value, updated_at: new Date().toISOString(), notified_at: null })
+          .update({ item_name: newName, expiry_date: isoDate, updated_at: new Date().toISOString(), notified_at: null })
           .eq('id', item.id);
         if (!error) loadItems();
       });
 
-      renewRow.append(dateEl, saveEl, errorEl);
-      row.replaceChild(renewRow, countdown);
-      updatedBtn.remove();
+      deleteBtn.addEventListener('click', async () => {
+        const { error } = await supabase.from('renewal_items').delete().eq('id', item.id);
+        if (!error) loadItems();
+      });
+
+      panel.append(nameEl, dateEl, saveBtn, deleteBtn, errorEl);
+      row.replaceChild(panel, countdown);
+      name.remove();
+      updateBtn.remove();
     }
 
     addBtn.addEventListener('click', async () => {
       addDateError.textContent = '';
       const name = nameInput.value.trim();
-      const date = dateInput.value;
-      if (!name || !date) return;
-      if (!isValidDate(date)) {
+      if (!name || !dateInput.value) return;
+      const isoDate = parseDDMMYYYY(dateInput.value);
+      if (!isoDate) {
         addDateError.textContent = 'Please check your date.';
         return;
       }
 
       const { error } = await supabase
         .from('renewal_items')
-        .insert({ item_name: name, expiry_date: date });
+        .insert({ item_name: name, expiry_date: isoDate });
 
       if (!error) {
         clearTimeout(collapseTimer);

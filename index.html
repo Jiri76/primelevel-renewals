@@ -136,6 +136,12 @@
     border-left: 4px solid var(--item-color);
     transition: border-color 0.15s ease;
   }
+  /* Urgency-color stripe hides while the row is actively being edited --
+     that color means "how soon this expires," which isn't the relevant
+     signal while you're in the middle of updating it. */
+  .item.editing {
+    border-left-color: var(--border);
+  }
   /* Hovering the row itself highlights the row's own border gold -- but
      only the top/right/bottom sides, never border-left, since that's the
      urgency color stripe and must never be overwritten by this. Cancelled
@@ -424,6 +430,7 @@
     // action (no separate arm/confirm step): getting here already required
     // the deliberate tap on "Update" first, so that's the real gate.
     function showEditPanel(row, item, name, countdown, updateBtn) {
+      row.classList.add('editing');
       const panel = document.createElement('div');
       panel.className = 'edit-panel';
 

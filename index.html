@@ -96,7 +96,11 @@
     outline: none;
     border-color: var(--gold);
   }
-  #newItemName { flex: 1; min-width: 0; }
+  /* Fixed widths, not flex-grow -- so the name field is the exact same
+     pixel size everywhere it appears (add form and every row's edit
+     panel alike), never stretching to fill leftover space differently
+     from one context to another. */
+  #newItemName, #editName { flex: 0 0 auto; width: 220px; }
   #newItemDate { flex: 0 0 auto; width: 110px; }
   .date-error {
     color: var(--red);
@@ -218,8 +222,7 @@
     font-size: 13px;
     padding: 6px 8px;
   }
-  #editName { flex: 1; min-width: 100px; }
-  #editDate { flex: 0 0 auto; width: 100px; }
+  #editDate { flex: 0 0 auto; width: 110px; }
   .edit-panel button {
     border: none;
     border-radius: 6px;

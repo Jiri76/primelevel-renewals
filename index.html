@@ -118,7 +118,21 @@
     flex: 0 0 auto;
     white-space: nowrap;
   }
+  /* White outline + white text, matching the app's secondary-button style
+     -- not gold, since gold is reserved for the single primary action. */
   .item-updated-btn {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid var(--white);
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .item-delete-btn {
     flex: 0 0 auto;
     background: transparent;
     border: 1px solid var(--border);
@@ -130,7 +144,10 @@
     padding: 6px 12px;
     cursor: pointer;
   }
-  .item-updated-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .item-delete-btn.confirming {
+    border-color: var(--red);
+    color: var(--red);
+  }
 
   .renew-row {
     display: flex;
@@ -147,9 +164,11 @@
     padding: 6px 8px;
     color-scheme: dark;
   }
+  /* Same primary-button styling as the dashboard's "Create Profile" button
+     -- gold fill, white text, not navy text. */
   .renew-row button {
     background: var(--gold);
-    color: var(--navy);
+    color: var(--white);
     border: none;
     border-radius: 6px;
     font-family: 'Montserrat', sans-serif;
@@ -286,7 +305,20 @@
         updatedBtn.textContent = 'Updated';
         updatedBtn.addEventListener('click', () => showRenewRow(row, item, countdown, updatedBtn));
 
-        row.append(name, countdown, updatedBtn);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'item-delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', async () => {
+          if (!deleteBtn.classList.contains('confirming')) {
+            deleteBtn.classList.add('confirming');
+            deleteBtn.textContent = 'Confirm?';
+            return;
+          }
+          const { error } = await supabase.from('renewal_items').delete().eq('id', item.id);
+          if (!error) loadItems();
+        });
+
+        row.append(name, countdown, updatedBtn, deleteBtn);
         itemList.append(row);
       }
     }

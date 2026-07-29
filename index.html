@@ -199,17 +199,24 @@
   }
 
   /* Edit panel -- opens in place of the countdown once "Update" is tapped.
-     Same input styling everywhere (see input:focus above), same button
-     language as the rest of the page: gold fill for the one primary
-     action (Save), red outline for the destructive one (Delete) -- no
-     two-step confirm needed here, since reaching Delete already required
-     the deliberate "Update" tap first. */
+     Two groups (fields, actions) with the exact same internal gap, pushed
+     to opposite ends -- so Save/Delete land flush against the row's right
+     edge, same as the Update button does on every other row, rather than
+     just trailing wherever the fixed-width fields happen to end. */
   .edit-panel {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex: 1;
+  }
+  .edit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .edit-fields, .edit-actions {
+    display: flex;
     align-items: center;
     gap: 8px;
-    flex: 1;
   }
   .edit-panel input {
     background: var(--navy);
@@ -486,7 +493,19 @@
         if (!error) loadItems();
       });
 
-      panel.append(nameEl, dateEl, saveBtn, deleteBtn, errorEl);
+      const fields = document.createElement('div');
+      fields.className = 'edit-fields';
+      fields.append(nameEl, dateEl);
+
+      const actions = document.createElement('div');
+      actions.className = 'edit-actions';
+      actions.append(saveBtn, deleteBtn);
+
+      const editRow = document.createElement('div');
+      editRow.className = 'edit-row';
+      editRow.append(fields, actions);
+
+      panel.append(editRow, errorEl);
       row.replaceChild(panel, countdown);
       name.remove();
       updateBtn.remove();

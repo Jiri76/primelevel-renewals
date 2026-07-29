@@ -130,6 +130,11 @@
     border-radius: 6px;
     padding: 6px 12px;
     cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+  }
+  .add-save-btn:hover {
+    opacity: 1;
   }
 
   /* Item list -- urgency is shown purely through the countdown text color
@@ -240,11 +245,19 @@
     text-align: center;
   }
   /* Save and Delete are visually identical -- same gold fill, same white
-     text, only the label differs. */
+     text, only the label differs. Same dim-until-hovered principle as the
+     "+" trigger (opacity 0.6 -> 1 on hover), not the fainter Update-button
+     level. */
   .edit-save-btn,
   .edit-delete-btn {
     background: var(--gold);
     color: var(--white);
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+  }
+  .edit-save-btn:hover,
+  .edit-delete-btn:hover {
+    opacity: 1;
   }
 
   .empty-state {

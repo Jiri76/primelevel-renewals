@@ -78,9 +78,13 @@
     margin-bottom: 40px;
   }
   .add-card.expanded { display: flex; }
+  /* Same thin 1px border-color swap as the dashboard's own inputs -- a
+     real border that's just transparent-ish by default, not a heavier
+     box-shadow ring, so the highlight reads as the same thickness. */
   .add-card input {
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
     font-size: 15px;
@@ -88,13 +92,9 @@
     outline: none;
   }
   .add-card input::placeholder { color: var(--placeholder); }
-  /* Any field, anywhere on the page, gets this same thin white highlight
-     the moment you click into it -- one consistent "you're inside this
-     field now" signal used everywhere, not a per-form one-off. */
   input:focus {
     outline: none;
-    box-shadow: 0 0 0 1px var(--white);
-    border-radius: 4px;
+    border-color: var(--gold);
   }
   #newItemName { flex: 1; min-width: 0; }
   #newItemDate { flex: 0 0 auto; width: 110px; }
@@ -134,6 +134,22 @@
     background: var(--input-bg);
     margin-bottom: 12px;
     border-left: 4px solid var(--item-color);
+    transition: border-color 0.15s ease;
+  }
+  /* Hovering the row itself highlights the row's own border gold -- but
+     only the top/right/bottom sides, never border-left, since that's the
+     urgency color stripe and must never be overwritten by this. Cancelled
+     via :has() specifically while the Update button itself is hovered, so
+     the row and the button never both read as "active" at once. */
+  .item:hover {
+    border-top-color: var(--gold);
+    border-right-color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+  .item:has(.item-update-btn:hover) {
+    border-top-color: var(--border);
+    border-right-color: var(--border);
+    border-bottom-color: var(--border);
   }
   .item-name {
     color: var(--white);
@@ -207,11 +223,12 @@
     padding: 7px 12px;
     cursor: pointer;
   }
-  .edit-save-btn { background: var(--gold); color: var(--white); }
+  /* Save and Delete are visually identical -- same gold fill, same white
+     text, only the label differs. */
+  .edit-save-btn,
   .edit-delete-btn {
-    background: transparent;
-    border: 1px solid var(--red) !important;
-    color: var(--red);
+    background: var(--gold);
+    color: var(--white);
   }
 
   .empty-state {

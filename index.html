@@ -64,15 +64,19 @@
   .add-trigger:hover { opacity: 1; }
   .add-trigger.hidden { display: none; }
 
-  /* Add-new-item card -- same padding as .item below so both read as the
-     exact same width, not just visually close. */
+  /* Add-new-item card -- same padding AND same fixed height as .item below,
+     so both read as genuinely identical, not just close. Height has to be
+     forced explicitly: the <input> elements inside carry their own extra
+     internal padding on top of the container's, which otherwise makes this
+     card taller than a plain item row even with matching container padding. */
   .add-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 16px 18px;
+    height: 64px;
     display: none;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
     align-items: center;
     margin-bottom: 40px;
@@ -94,7 +98,7 @@
   .add-card input::placeholder { color: var(--placeholder); }
   input:focus {
     outline: none;
-    border-color: var(--gold);
+    border-color: var(--white);
   }
   /* Fixed widths, not flex-grow -- so the name field is the exact same
      pixel size everywhere it appears (add form and every row's edit
@@ -146,20 +150,14 @@
   .item.editing {
     border-left-color: var(--border);
   }
-  /* Hovering the row itself highlights the row's own border gold -- but
-     only the top/right/bottom sides, never border-left, since that's the
-     urgency color stripe and must never be overwritten by this. Cancelled
-     via :has() specifically while the Update button itself is hovered, so
-     the row and the button never both read as "active" at once. */
-  .item:hover {
-    border-top-color: var(--gold);
-    border-right-color: var(--gold);
-    border-bottom-color: var(--gold);
-  }
+  /* Hovering the row -- or hovering its Update button, since that's still
+     part of interacting with this row -- frames all four sides in white
+     (same thin 1px thickness throughout, just a plain border-color swap,
+     no box-shadow). Stays lit the whole time you're anywhere on the row,
+     including directly over Update. */
+  .item:hover,
   .item:has(.item-update-btn:hover) {
-    border-top-color: var(--border);
-    border-right-color: var(--border);
-    border-bottom-color: var(--border);
+    border-color: var(--white);
   }
   .item-name {
     color: var(--white);

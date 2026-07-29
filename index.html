@@ -119,34 +119,39 @@
     white-space: nowrap;
   }
   /* White outline + white text, matching the app's secondary-button style
-     -- not gold, since gold is reserved for the single primary action. */
-  .item-updated-btn {
-    flex: 0 0 auto;
-    background: transparent;
-    border: 1px solid var(--white);
-    color: var(--white);
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    border-radius: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
-  }
+     -- not gold, since gold is reserved for the single primary action.
+     Dimmed until the row is actually hovered, so a long list doesn't read
+     as a wall of bold buttons -- only "Confirm?" stays fully lit, since
+     that's an active state needing attention regardless of hover. */
+  .item-updated-btn,
   .item-delete-btn {
     flex: 0 0 auto;
     background: transparent;
-    border: 1px solid var(--border);
-    color: var(--placeholder);
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     font-size: 13px;
     border-radius: 6px;
     padding: 6px 12px;
     cursor: pointer;
+    opacity: 0.45;
+    transition: opacity 0.15s ease;
+  }
+  .item:hover .item-updated-btn,
+  .item:hover .item-delete-btn {
+    opacity: 1;
+  }
+  .item-updated-btn {
+    border: 1px solid var(--white);
+    color: var(--white);
+  }
+  .item-delete-btn {
+    border: 1px solid var(--border);
+    color: var(--placeholder);
   }
   .item-delete-btn.confirming {
     border-color: var(--red);
     color: var(--red);
+    opacity: 1;
   }
 
   .renew-row {
@@ -246,6 +251,15 @@
     dateInput.addEventListener('input', refreshAddCardState);
     document.addEventListener('click', (e) => {
       if (!addCard.contains(e.target)) refreshAddCardState();
+      // Clicking anywhere other than an armed delete button itself cancels
+      // it back to "Delete" -- otherwise there was no way out of "Confirm?"
+      // once armed, short of actually deleting or reloading the page.
+      document.querySelectorAll('.item-delete-btn.confirming').forEach((btn) => {
+        if (btn !== e.target) {
+          btn.classList.remove('confirming');
+          btn.textContent = 'Delete';
+        }
+      });
     });
 
     function daysUntil(dateStr) {

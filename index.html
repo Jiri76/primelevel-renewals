@@ -40,18 +40,43 @@
     margin: 0 0 32px;
   }
 
+  /* Collapsed by default -- just a minimal "+" trigger, so the dashboard
+     opens showing nothing but the list itself. Expands into the real
+     add-card only once clicked. */
+  .add-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--gold);
+    color: var(--white);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+    margin-bottom: 40px;
+  }
+  .add-trigger:hover { opacity: 1; }
+  .add-trigger.hidden { display: none; }
+
   /* Add-new-item card */
   .add-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 16px;
-    display: flex;
+    display: none;
     flex-wrap: wrap;
     gap: 10px;
     align-items: center;
     margin-bottom: 40px;
   }
+  .add-card.expanded { display: flex; }
   .add-card input {
     background: transparent;
     border: none;
@@ -140,6 +165,14 @@
   .item:hover .item-delete-btn {
     opacity: 1;
   }
+  /* When one action on a row is active (Delete armed to "Confirm?", or
+     Updated switched into its renew form), the other action dims down
+     regardless of hover -- only one action should read as "live" at a
+     time on a given row. */
+  .item-updated-btn.forced-dim,
+  .item-delete-btn.forced-dim {
+    opacity: 0.2 !important;
+  }
   .item-updated-btn {
     border: 1px solid var(--white);
     color: var(--white);
@@ -195,6 +228,7 @@
   <div class="container">
     <h1>Renewals</h1>
 
+    <button class="add-trigger" id="addTrigger" title="Add a renewal">+</button>
     <div class="add-card" id="addCard">
       <input id="newItemName" type="text" placeholder="e.g. Passport, Car Insurance" autocomplete="off" />
       <input id="newItemDate" type="date" />
@@ -212,12 +246,37 @@
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_-gt5PPGL45s3hRsfOosH6g_q3yP-b-_';
     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+    const addTrigger = document.getElementById('addTrigger');
     const addCard = document.getElementById('addCard');
     const nameInput = document.getElementById('newItemName');
     const dateInput = document.getElementById('newItemDate');
     const addBtn = document.getElementById('addBtn');
     const addDateError = document.getElementById('addDateError');
     const itemList = document.getElementById('itemList');
+
+    // Collapsed to a minimal "+" by default -- the dashboard opens showing
+    // nothing but the list itself. Expands into the real add-card on tap,
+    // and auto-collapses again after 60s of inactivity so it doesn't sit
+    // open forever if you got distracted mid-entry.
+    let collapseTimer = null;
+    function collapseAddCard() {
+      addCard.classList.remove('expanded');
+      addTrigger.classList.remove('hidden');
+      nameInput.value = '';
+      dateInput.value = '';
+      addDateError.textContent = '';
+      refreshAddCardState();
+    }
+    function resetCollapseTimer() {
+      clearTimeout(collapseTimer);
+      collapseTimer = setTimeout(collapseAddCard, 60000);
+    }
+    addTrigger.addEventListener('click', () => {
+      addTrigger.classList.add('hidden');
+      addCard.classList.add('expanded');
+      nameInput.focus();
+      resetCollapseTimer();
+    });
 
     // Native date inputs don't cap the year sub-field at 4 digits in every
     // browser -- min/max plus this explicit check are what actually stop
@@ -249,6 +308,10 @@
     dateInput.addEventListener('focus', refreshAddCardState);
     nameInput.addEventListener('input', refreshAddCardState);
     dateInput.addEventListener('input', refreshAddCardState);
+    nameInput.addEventListener('input', resetCollapseTimer);
+    dateInput.addEventListener('input', resetCollapseTimer);
+    nameInput.addEventListener('focus', resetCollapseTimer);
+    dateInput.addEventListener('focus', resetCollapseTimer);
     document.addEventListener('click', (e) => {
       if (!addCard.contains(e.target)) refreshAddCardState();
       // Clicking anywhere other than an armed delete button itself cancels
@@ -258,6 +321,8 @@
         if (btn !== e.target) {
           btn.classList.remove('confirming');
           btn.textContent = 'Delete';
+          const row = btn.closest('.item');
+          row?.querySelector('.item-updated-btn')?.classList.remove('forced-dim');
         }
       });
     });
@@ -317,7 +382,10 @@
         const updatedBtn = document.createElement('button');
         updatedBtn.className = 'item-updated-btn';
         updatedBtn.textContent = 'Updated';
-        updatedBtn.addEventListener('click', () => showRenewRow(row, item, countdown, updatedBtn));
+        updatedBtn.addEventListener('click', () => {
+          row.querySelector('.item-delete-btn')?.classList.add('forced-dim');
+          showRenewRow(row, item, countdown, updatedBtn);
+        });
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'item-delete-btn';
@@ -326,6 +394,7 @@
           if (!deleteBtn.classList.contains('confirming')) {
             deleteBtn.classList.add('confirming');
             deleteBtn.textContent = 'Confirm?';
+            updatedBtn.classList.add('forced-dim');
             return;
           }
           const { error } = await supabase.from('renewal_items').delete().eq('id', item.id);
@@ -386,9 +455,8 @@
         .insert({ item_name: name, expiry_date: date });
 
       if (!error) {
-        nameInput.value = '';
-        dateInput.value = '';
-        refreshAddCardState();
+        clearTimeout(collapseTimer);
+        collapseAddCard();
         loadItems();
       }
     });

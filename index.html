@@ -557,12 +557,21 @@
           .from('renewal_items')
           .update({ item_name: newName, expiry_date: isoDate, updated_at: new Date().toISOString(), notified_at: null })
           .eq('id', item.id);
-        if (!error) loadItems();
+        if (!error) {
+          loadItems();
+        } else {
+          errorEl.textContent = 'Could not save — please check your connection and try again.';
+        }
       });
 
       deleteBtn.addEventListener('click', async () => {
+        errorEl.textContent = '';
         const { error } = await supabase.from('renewal_items').delete().eq('id', item.id);
-        if (!error) loadItems();
+        if (!error) {
+          loadItems();
+        } else {
+          errorEl.textContent = 'Could not delete — please check your connection and try again.';
+        }
       });
 
       const fields = document.createElement('div');
@@ -601,6 +610,8 @@
         clearTimeout(collapseTimer);
         closeAddPopover();
         loadItems();
+      } else {
+        addDateError.textContent = 'Could not save — please check your connection and try again.';
       }
     });
 

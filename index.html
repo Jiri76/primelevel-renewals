@@ -329,11 +329,6 @@
       nameInput.focus();
       resetCollapseTimer();
     });
-    document.addEventListener('click', (e) => {
-      if (!addPopover.classList.contains('open')) return;
-      if (addPopover.contains(e.target) || addTrigger.contains(e.target)) return;
-      closeAddPopover();
-    });
 
     // Hard-coded DD/MM/YYYY entry, same pattern as the VAT/sort-code fields
     // elsewhere -- no native date picker at all. Auto-formats as you type
@@ -380,6 +375,20 @@
     dateInput.addEventListener('input', resetCollapseTimer);
     nameInput.addEventListener('focus', resetCollapseTimer);
     dateInput.addEventListener('focus', resetCollapseTimer);
+
+    // Enter moves you straight to the next field, and submits from the
+    // last one -- so filling in a new item never requires manually
+    // reaching for the mouse/trackpad.
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      dateInput.focus();
+    });
+    dateInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      addBtn.click();
+    });
 
     function daysUntil(dateStr) {
       const today = new Date();
@@ -480,6 +489,18 @@
       const saveBtn = document.createElement('button');
       saveBtn.className = 'edit-save-btn';
       saveBtn.textContent = 'Save';
+
+      // Same Enter-to-advance behaviour as the add form.
+      nameEl.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        dateEl.focus();
+      });
+      dateEl.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        saveBtn.click();
+      });
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'edit-delete-btn';

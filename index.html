@@ -622,5 +622,12 @@
 
     loadItems();
   </script>
+  <script>
+    // Registered purely so the browser offers "Install" -- see sw.js for
+    // why it deliberately does no caching.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
 </body>
 </html>

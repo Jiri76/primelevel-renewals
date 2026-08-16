@@ -473,33 +473,42 @@
         return;
       }
       for (const item of items) {
-        const days = daysUntil(item.expiry_date);
-        const row = document.createElement('div');
-        row.className = 'item';
-        row.style.setProperty('--item-color', colorFor(days));
-        // mouseenter/mouseleave (unlike mouseover/mouseout) only fire once
-        // for the whole row, not again for every child crossed -- so this
-        // reliably stays "hovered" the entire time the cursor is anywhere
-        // inside the row, including directly over the Update button.
-        row.addEventListener('mouseenter', () => row.classList.add('row-hovered'));
-        row.addEventListener('mouseleave', () => row.classList.remove('row-hovered'));
-
-        const name = document.createElement('div');
-        name.className = 'item-name';
-        name.textContent = item.item_name;
-
-        const countdown = document.createElement('div');
-        countdown.className = 'item-countdown';
-        countdown.textContent = countdownText(days);
-
-        const updateBtn = document.createElement('button');
-        updateBtn.className = 'item-update-btn';
-        updateBtn.textContent = 'Update';
-        updateBtn.addEventListener('click', () => showEditPanel(row, item, name, countdown, updateBtn));
-
-        row.append(name, countdown, updateBtn);
-        itemList.append(row);
+        itemList.append(buildItemRow(item));
       }
+    }
+
+    // Builds one row in its normal (non-editing) view. Factored out of
+    // renderItems so a single Save/Delete can rebuild or remove just its
+    // own row afterward, instead of the whole list having to reload --
+    // that reload was exactly what collapsed every OTHER open edit panel
+    // back to normal, even ones you hadn't touched.
+    function buildItemRow(item) {
+      const days = daysUntil(item.expiry_date);
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.style.setProperty('--item-color', colorFor(days));
+      // mouseenter/mouseleave (unlike mouseover/mouseout) only fire once
+      // for the whole row, not again for every child crossed -- so this
+      // reliably stays "hovered" the entire time the cursor is anywhere
+      // inside the row, including directly over the Update button.
+      row.addEventListener('mouseenter', () => row.classList.add('row-hovered'));
+      row.addEventListener('mouseleave', () => row.classList.remove('row-hovered'));
+
+      const name = document.createElement('div');
+      name.className = 'item-name';
+      name.textContent = item.item_name;
+
+      const countdown = document.createElement('div');
+      countdown.className = 'item-countdown';
+      countdown.textContent = countdownText(days);
+
+      const updateBtn = document.createElement('button');
+      updateBtn.className = 'item-update-btn';
+      updateBtn.textContent = 'Update';
+      updateBtn.addEventListener('click', () => showEditPanel(row, item, name, countdown, updateBtn));
+
+      row.append(name, countdown, updateBtn);
+      return row;
     }
 
     // Single edit surface for a row -- name, date, Save, and Delete all
@@ -566,7 +575,10 @@
           .update({ item_name: newName, expiry_date: isoDate, updated_at: new Date().toISOString(), notified_at: null })
           .eq('id', item.id);
         if (!error) {
-          loadItems();
+          // Rebuild only THIS row back to its normal view -- every other
+          // row keeps whatever state it was already in (open or not).
+          const updatedItem = { ...item, item_name: newName, expiry_date: isoDate };
+          row.replaceWith(buildItemRow(updatedItem));
         } else {
           errorEl.textContent = 'Could not save — please check your connection and try again.';
         }
@@ -576,7 +588,12 @@
         errorEl.textContent = '';
         const { error } = await supabase.from('renewal_items').delete().eq('id', item.id);
         if (!error) {
-          loadItems();
+          // Remove only THIS row -- every other open edit panel is
+          // untouched, same reasoning as Save above.
+          row.remove();
+          if (!itemList.children.length) {
+            itemList.innerHTML = '<div class="empty-state">Nothing tracked yet — add your first renewal above.</div>';
+          }
         } else {
           errorEl.textContent = 'Could not delete — please check your connection and try again.';
         }
@@ -610,14 +627,20 @@
         return;
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('renewal_items')
-        .insert({ item_name: name, expiry_date: isoDate });
+        .insert({ item_name: name, expiry_date: isoDate })
+        .select()
+        .single();
 
-      if (!error) {
+      if (!error && data) {
         clearTimeout(collapseTimer);
         closeAddPopover();
-        loadItems();
+        // Prepend just the new row -- doesn't disturb any edit panel
+        // already open elsewhere in the list, same reasoning as Save/Delete.
+        const emptyState = itemList.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+        itemList.prepend(buildItemRow(data));
       } else {
         addDateError.textContent = 'Could not save — please check your connection and try again.';
       }

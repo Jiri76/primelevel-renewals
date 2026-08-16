@@ -72,45 +72,36 @@
   .add-trigger:hover { opacity: 1; }
   .add-trigger:active { transform: scale(0.94); }
 
-  /* Grid-rows 0fr -> 1fr trick: the only reliable way to smoothly animate
-     open/closed without hard-coding a pixel height (the popover's real
-     height changes depending on whether the error line is showing). The
-     visible card (background/border) lives on the inner wrapper so the
-     outer element can collapse to a true, borderless zero rather than
-     leaving a thin residual line while closed. */
+  /* max-height 0 -> generous-fixed-value trick: a simpler, more reliable
+     collapse animation than the grid-rows 0fr/1fr approach used earlier.
+     That approach broke when padding/border also needed to animate (the
+     grid's "1fr" target depends on the content's current padded size, so
+     animating both at once creates a circular dependency that made the
+     open state randomly fail to render at all -- found via direct
+     testing, not a hypothetical). max-height has no such interaction:
+     it's just a hard clip between two fixed numbers, so padding/border
+     on the inner card can stay constant and still collapse to a true 0
+     when closed (clipped by overflow:hidden here, same as before). 160px
+     is comfortably above the tallest real content (name/date row + the
+     error line), so it never visibly truncates. */
   .add-popover {
-    display: grid;
-    grid-template-rows: 0fr;
+    max-height: 0;
     margin-top: 0;
     opacity: 0;
     overflow: hidden;
-    transition: grid-template-rows 0.25s ease, margin-top 0.25s ease, opacity 0.2s ease;
+    transition: max-height 0.25s ease, margin-top 0.25s ease, opacity 0.2s ease;
   }
   .add-popover.open {
-    grid-template-rows: 1fr;
+    max-height: 160px;
     margin-top: 12px;
     opacity: 1;
   }
-  /* Padding and border-width are NOT part of the grid-rows 0fr collapse --
-     they render regardless of content height, so they must animate to
-     zero themselves too, or the "closed" state leaves invisible leftover
-     height (found via direct measurement: 34px of residual space even
-     though the row track itself was genuinely 0fr). */
   .add-popover-inner {
-    min-height: 0;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     background: var(--input-bg);
-    border-style: solid;
-    border-width: 0;
-    border-color: var(--border);
+    border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 0 18px;
-    transition: padding 0.25s ease, border-width 0.25s ease;
-  }
-  .add-popover.open .add-popover-inner {
-    border-width: 1px;
     padding: 16px 18px;
   }
   .add-row {

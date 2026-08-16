@@ -128,28 +128,35 @@
      space, Save sits flush right, 16px break between the two groups
      (double the 8px used inside each group) -- identical rhythm to the
      edit panel, not just a similar one. */
+  /* space-between, not flex-grow -- so the name field can stay a FIXED
+     width shared with #editName below, genuinely pixel-identical in
+     both forms regardless of how many buttons follow. (flex-grow was
+     tried first, but grow-to-fill produces a WIDER field here than in
+     the edit panel, since this form has one fewer button and therefore
+     more room to grow into -- found via direct measurement: 356px here
+     vs 276px there. Fixed width fixes that for real.) */
   .add-row {
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: space-between;
   }
   .add-fields {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 1;
   }
-  /* Same thin 1px border-color swap as the dashboard's own inputs -- a
-     real border that's just transparent-ish by default, not a heavier
-     box-shadow ring, so the highlight reads as the same thickness. */
-  .add-popover input {
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 4px;
+  /* Shared with .edit-panel input below -- genuinely the same color,
+     border, radius, font-size and padding in both forms, not just a
+     similarly-styled input that happened to look close. */
+  .add-popover input,
+  .edit-panel input {
+    background: var(--navy);
+    border: 1px solid var(--border);
+    border-radius: 6px;
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
-    font-size: 15px;
-    padding: 8px 4px;
+    font-size: 13px;
+    padding: 6px 8px;
     outline: none;
   }
   .add-popover input::placeholder { color: var(--placeholder); }
@@ -157,10 +164,12 @@
     outline: none;
     border-color: var(--white);
   }
-  /* Grows to fill available space, same as #editName -- the add form and
-     every row's edit panel now use the identical layout language, not
-     two separate ones. */
-  #newItemName { flex: 1; min-width: 0; }
+  /* Fixed width, shared with #editName below -- genuinely the same
+     pixel size in both forms, not just a similar-looking one. 276px is
+     what the edit panel's row math already required (see .edit-fields
+     comment); reusing that exact value here, rather than letting this
+     field size itself independently, is what makes them identical. */
+  #newItemName, #editName { flex: 0 0 auto; width: 276px; }
   #newItemDate { flex: 0 0 auto; width: 110px; }
   .date-error {
     color: var(--red);
@@ -283,48 +292,28 @@
     flex-direction: column;
     flex: 1;
   }
-  /* Explicit gap here (not relying on space-between) -- with .edit-fields
-     set to flex:1 below, space-between alone left ZERO breathing room
-     between the date field and Save (they ended up literally touching,
-     found via user report + confirmed live). Deliberately double the
-     internal gaps used within each group (name<->date is 8px, Save<->
-     Delete is 8px) -- 16px here reads as a clear visual break between
-     the two groups, distinct from the tighter rhythm inside each one.
-     Automatically subtracted from .edit-fields' available growth space
-     by the flex algorithm, so the name field shrinks slightly to make
-     room -- no manual width adjustment needed. */
+  /* space-between, not flex-grow -- with a fixed-width name field
+     (shared with #newItemName above), the row's own math already works
+     out to exactly a 16px gap here with nothing left over: 276 (name) +
+     8 (gap) + 110 (date) + 152 (Save+8+Delete) = 546, leaving exactly
+     16px of the 562px row for space-between to place as one clean gap.
+     Double the 8px used inside each group (name<->date, Save<->Delete),
+     achieved without any extra CSS -- not a coincidence, the fixed
+     widths were chosen to land exactly here. */
   .edit-row {
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: space-between;
   }
-  /* .edit-fields grows to fill whatever space Save/Delete (plus the row's
-     own 16px gap above) don't need -- found via direct measurement a
-     genuine 72px dead gap sitting between the date field and Save on
-     every row (338px fields + 152px actions inside a 562px row).
-     #editName absorbs that growth (free text reasonably uses more
-     room); #editDate stays fixed at its own readable width below -- a
-     DD/MM/YYYY box has no reason to stretch. */
   .edit-fields {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 1;
   }
   .edit-actions {
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  #editName { flex: 1; min-width: 0; }
-  .edit-panel input {
-    background: var(--navy);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--white);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 13px;
-    padding: 6px 8px;
   }
   #editDate { flex: 0 0 auto; width: 110px; }
   .edit-panel button {

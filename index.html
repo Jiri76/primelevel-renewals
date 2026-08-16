@@ -226,12 +226,16 @@
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
   }
-  /* The button only brightens on its own direct hover -- not just from
+  /* The button only inverts on its own direct hover -- not just from
      being anywhere in the row -- separate from the row's own white
      highlight (.row-hovered above), which stays lit the whole time
-     regardless of whether the button itself is also being hovered. */
+     regardless of whether the button itself is also being hovered.
+     Full color swap (white fill, navy text) rather than just brightening
+     the same outline style, for a much stronger, unmistakable highlight. */
   .item-update-btn:hover {
     opacity: 1;
+    background: var(--white);
+    color: var(--navy);
   }
   .item-update-btn:active {
     transform: scale(0.96);

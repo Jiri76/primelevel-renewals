@@ -42,7 +42,83 @@
     color: var(--gold);
     font-weight: 700;
     font-size: 32px;
-    margin: 0 0 32px;
+    margin: 0;
+  }
+  /* Margin moved here from h1 itself, so the header row (heading + sign
+     out) still leaves the exact same 32px gap above the "+" that's
+     already been measured and confirmed correct. */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .sign-out-link {
+    background: none;
+    border: none;
+    color: var(--placeholder);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .sign-out-link:hover { color: var(--white); }
+
+  /* Sign-in card -- same card language as .add-popover-inner (input-bg
+     background, var(--border) outline, 10px radius), same input styling
+     as every other field on the page, same gold-free white-outline/
+     hover-swap button language as Update/Save/Delete elsewhere. Only
+     genuinely new thing here is the wider auto-width button, since
+     "Send magic link" doesn't fit the fixed 72px used for single words. */
+  .auth-card {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 320px;
+  }
+  .auth-lead {
+    color: var(--white);
+    font-size: 15px;
+    margin: 0;
+  }
+  #authEmail {
+    background: var(--navy);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+  }
+  #authEmail::placeholder { color: var(--placeholder); }
+  .auth-btn {
+    align-self: flex-start;
+    background: transparent;
+    border: 0.5px solid var(--white);
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    opacity: 0.45;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+  }
+  .auth-btn:hover {
+    opacity: 1;
+    background: var(--white);
+    color: var(--navy);
+  }
+  .auth-btn:active { transform: scale(0.96); }
+  .auth-sent {
+    color: var(--green);
+    font-size: 13px;
   }
 
   /* The "+" trigger never moves -- it stays anchored in this exact spot.
@@ -373,8 +449,24 @@
 </style>
 </head>
 <body>
-  <div class="container">
+  <!-- Hidden until the initial session check resolves, so there's no
+       flash of the sign-in card for someone who's already signed in. -->
+  <div class="container" id="authContainer" style="display: none;">
     <h1>Renewals</h1>
+    <div class="auth-card">
+      <p class="auth-lead">Sign in to see your renewals.</p>
+      <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+      <button id="authSendBtn" class="auth-btn">Send magic link</button>
+      <div class="date-error" id="authError"></div>
+      <div class="auth-sent" id="authSentMsg"></div>
+    </div>
+  </div>
+
+  <div class="container" id="appContainer" style="display: none;">
+    <div class="app-header">
+      <h1>Renewals</h1>
+      <button class="sign-out-link" id="signOutBtn">Sign out</button>
+    </div>
 
     <div class="add-wrapper">
       <button class="add-trigger" id="addTrigger" title="Add a renewal">+</button>
@@ -401,6 +493,69 @@
     const SUPABASE_URL = 'https://kenlhcatkjthhzuaznpg.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_-gt5PPGL45s3hRsfOosH6g_q3yP-b-_';
     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    // Multi-tenant gate. Each row in the database now has a user_id
+    // (defaults to auth.uid() on insert) and RLS only lets a signed-in
+    // user see/edit/delete their OWN rows -- confirmed at the database
+    // level (a request with no session gets a genuine 401, not just an
+    // empty list). This client-side gate is purely about which SCREEN to
+    // show; the real security boundary is the RLS policy, not this JS.
+    const authContainer = document.getElementById('authContainer');
+    const appContainer = document.getElementById('appContainer');
+    const authEmail = document.getElementById('authEmail');
+    const authSendBtn = document.getElementById('authSendBtn');
+    const authError = document.getElementById('authError');
+    const authSentMsg = document.getElementById('authSentMsg');
+    const signOutBtn = document.getElementById('signOutBtn');
+
+    const EMAIL_REGEX = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+
+    function showAuthScreen() {
+      appContainer.style.display = 'none';
+      authContainer.style.display = 'block';
+    }
+    function showAppScreen() {
+      authContainer.style.display = 'none';
+      appContainer.style.display = 'block';
+      loadItems();
+    }
+
+    authSendBtn.addEventListener('click', async () => {
+      setError(authError, '');
+      authSentMsg.textContent = '';
+      const email = authEmail.value.trim();
+      if (!EMAIL_REGEX.test(email)) {
+        setError(authError, 'Please enter a valid email.');
+        return;
+      }
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + window.location.pathname },
+      });
+      if (!error) {
+        authSentMsg.textContent = `Check ${email} for the link.`;
+      } else {
+        setError(authError, 'Could not send the link — please check your connection and try again.');
+      }
+    });
+
+    authEmail.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') authSendBtn.click();
+    });
+
+    signOutBtn.addEventListener('click', () => supabase.auth.signOut());
+
+    // detectSessionInUrl (on by default) handles the magic-link callback
+    // automatically -- exchanges the code, fires this listener, and
+    // cleans the URL. Also fires on manual sign-in/out, and on the
+    // initial page load with an already-existing session.
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        showAppScreen();
+      } else {
+        showAuthScreen();
+      }
+    });
 
     const addTrigger = document.getElementById('addTrigger');
     const addPopover = document.getElementById('addPopover');
@@ -761,7 +916,9 @@
       }
     });
 
-    loadItems();
+    // No unconditional loadItems() here -- it's called from
+    // showAppScreen() once onAuthStateChange confirms a real session,
+    // never before. Nothing fetches or renders while signed out.
   </script>
   <script>
     // Registered purely so the browser offers "Install" -- see sw.js for

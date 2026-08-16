@@ -45,10 +45,13 @@
     margin: 0 0 32px;
   }
 
-  /* The "+" trigger never moves and never hides -- it stays anchored in
-     this exact spot at all times. Clicking it opens the add-popover in
-     normal page flow, right underneath -- it pushes the list down rather
-     than floating over it, so it never overlaps the first item. */
+  /* The "+" trigger never moves -- it stays anchored in this exact spot.
+     Clicking it opens the add-popover in normal page flow, right
+     underneath -- it pushes the list down rather than floating over it,
+     so it never overlaps the first item. Same resting/hover color
+     language as .item-update-btn (below) -- transparent + white outline
+     at rest, full white-fill/navy-text swap on hover -- so the two read
+     as genuinely identical, not just similar. */
   .add-wrapper {
     margin-bottom: 32px;
   }
@@ -59,18 +62,29 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: none;
-    background: var(--gold);
+    border: 0.5px solid var(--white);
+    background: transparent;
     color: var(--white);
     font-size: 20px;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
   }
-  .add-trigger:hover { opacity: 1; }
+  .add-trigger:hover {
+    opacity: 1;
+    background: var(--white);
+    color: var(--navy);
+  }
   .add-trigger:active { transform: scale(0.94); }
+  /* Idle auto-hide: fades out after 30s of no clicks anywhere on the
+     page, reappears on the next click. Stays reserved in layout (opacity
+     only, not display:none) so nothing else shifts when it toggles. */
+  .add-trigger.idle-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
 
   /* max-height 0 -> generous-fixed-value trick: a simpler, more reliable
      collapse animation than the grid-rows 0fr/1fr approach used earlier.
@@ -348,10 +362,10 @@
     const addDateError = document.getElementById('addDateError');
     const itemList = document.getElementById('itemList');
 
-    // The "+" trigger stays put at all times -- opening the popover never
-    // hides or moves it. Auto-closes after 60s of inactivity so it doesn't
-    // sit open forever if you got distracted mid-entry, and closes on any
-    // click outside it too.
+    // The "+" trigger never moves -- opening the popover never shifts it.
+    // Auto-closes after 60s of inactivity so it doesn't sit open forever
+    // if you got distracted mid-entry, and closes on any click outside it
+    // too.
     let collapseTimer = null;
     function closeAddPopover() {
       addPopover.classList.remove('open');
@@ -373,6 +387,27 @@
       nameInput.focus();
       resetCollapseTimer();
     });
+
+    // Separate from the popover's own 60s auto-collapse above: the "+"
+    // trigger itself fades out after 30s of no clicks anywhere on the
+    // page (nothing being used), and reappears the moment anything is
+    // clicked again -- an item, Update, Save, the trigger itself, etc.
+    // Guarded so it never hides while its own popover is open (that would
+    // strand an open popover with no trigger to close it via).
+    let hideTriggerTimer = null;
+    function scheduleTriggerHide() {
+      clearTimeout(hideTriggerTimer);
+      hideTriggerTimer = setTimeout(() => {
+        if (!addPopover.classList.contains('open')) {
+          addTrigger.classList.add('idle-hidden');
+        }
+      }, 30000);
+    }
+    document.addEventListener('click', () => {
+      addTrigger.classList.remove('idle-hidden');
+      scheduleTriggerHide();
+    });
+    scheduleTriggerHide();
 
     // Hard-coded DD/MM/YYYY entry, same pattern as the VAT/sort-code fields
     // elsewhere -- no native date picker at all. Auto-formats as you type

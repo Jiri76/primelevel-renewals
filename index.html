@@ -160,9 +160,12 @@
     outline: none;
   }
   .add-popover input::placeholder { color: var(--placeholder); }
+  /* No border-color change on focus -- the blinking text cursor is the
+     only focus signal now, border stays exactly as it is at rest.
+     outline:none still needed to suppress the browser's own default
+     blue focus ring. */
   input:focus {
     outline: none;
-    border-color: var(--white);
   }
   /* Fixed width, shared with #editName below -- genuinely the same
      pixel size in both forms, not just a similar-looking one. 276px is

@@ -269,21 +269,23 @@
     flex-direction: column;
     flex: 1;
   }
-  /* Explicit 8px gap here (not relying on space-between) -- with
-     .edit-fields set to flex:1 below, space-between alone left ZERO
-     breathing room between the date field and Save (they ended up
-     literally touching, found via user report + confirmed live). The
-     row's own gap is what guarantees the same 8px rhythm used
-     everywhere else (name<->date, Save<->Delete), automatically
-     subtracted from .edit-fields' available growth space by the flex
-     algorithm. */
+  /* Explicit gap here (not relying on space-between) -- with .edit-fields
+     set to flex:1 below, space-between alone left ZERO breathing room
+     between the date field and Save (they ended up literally touching,
+     found via user report + confirmed live). Deliberately double the
+     internal gaps used within each group (name<->date is 8px, Save<->
+     Delete is 8px) -- 16px here reads as a clear visual break between
+     the two groups, distinct from the tighter rhythm inside each one.
+     Automatically subtracted from .edit-fields' available growth space
+     by the flex algorithm, so the name field shrinks slightly to make
+     room -- no manual width adjustment needed. */
   .edit-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 16px;
   }
   /* .edit-fields grows to fill whatever space Save/Delete (plus the row's
-     own 8px gap above) don't need -- found via direct measurement a
+     own 16px gap above) don't need -- found via direct measurement a
      genuine 72px dead gap sitting between the date field and Save on
      every row (338px fields + 152px actions inside a 562px row).
      #editName absorbs that growth (free text reasonably uses more

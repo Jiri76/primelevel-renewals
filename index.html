@@ -118,15 +118,20 @@
     border-radius: 10px;
     padding: 16px 18px;
   }
+  /* Same layout language as .edit-row: fields grow to fill available
+     space, Save sits flush right, 16px break between the two groups
+     (double the 8px used inside each group) -- identical rhythm to the
+     edit panel, not just a similar one. */
   .add-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 16px;
   }
   .add-fields {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex: 1;
   }
   /* Same thin 1px border-color swap as the dashboard's own inputs -- a
      real border that's just transparent-ish by default, not a heavier
@@ -146,11 +151,10 @@
     outline: none;
     border-color: var(--white);
   }
-  /* Fixed width for the add-form's name field -- stays the exact same
-     pixel size every time that specific form appears. The edit panel's
-     name field (#editName below) deliberately does NOT match this --
-     see the .edit-fields comment for why. */
-  #newItemName { flex: 0 0 auto; width: 220px; }
+  /* Grows to fill available space, same as #editName -- the add form and
+     every row's edit panel now use the identical layout language, not
+     two separate ones. */
+  #newItemName { flex: 1; min-width: 0; }
   #newItemDate { flex: 0 0 auto; width: 110px; }
   .date-error {
     color: var(--red);
@@ -158,25 +162,29 @@
     margin-top: 6px;
     flex-basis: 100%;
   }
-  /* Same box model as .item-update-btn (same "size"), same gold-fill/white
-     text as the edit panel's Save button (same color language), flush to
-     the right edge of the row -- same anchoring as Update on every item row. */
+  /* Now genuinely identical to .item-update-btn / .edit-save-btn --
+     same 72x30 box, same resting/hover color swap -- not just similarly
+     sized and a different gold-fill language. */
   .add-save-btn {
     flex: 0 0 auto;
-    background: var(--gold);
+    width: 72px;
+    text-align: center;
+    background: transparent;
+    border: 0.5px solid var(--white);
     color: var(--white);
-    border: none;
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     font-size: 13px;
     border-radius: 6px;
     padding: 6px 12px;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
   }
   .add-save-btn:hover {
     opacity: 1;
+    background: var(--white);
+    color: var(--navy);
   }
   .add-save-btn:active {
     transform: scale(0.96);

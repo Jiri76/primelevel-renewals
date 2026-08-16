@@ -146,11 +146,11 @@
     outline: none;
     border-color: var(--white);
   }
-  /* Fixed widths, not flex-grow -- so the name field is the exact same
-     pixel size everywhere it appears (add form and every row's edit
-     panel alike), never stretching to fill leftover space differently
-     from one context to another. */
-  #newItemName, #editName { flex: 0 0 auto; width: 220px; }
+  /* Fixed width for the add-form's name field -- stays the exact same
+     pixel size every time that specific form appears. The edit panel's
+     name field (#editName below) deliberately does NOT match this --
+     see the .edit-fields comment for why. */
+  #newItemName { flex: 0 0 auto; width: 220px; }
   #newItemDate { flex: 0 0 auto; width: 110px; }
   .date-error {
     color: var(--red);
@@ -239,6 +239,10 @@
     cursor: pointer;
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
+    /* Same fixed width as Save/Delete (72px) -- Update was previously
+       auto-sized to its own text (76px natural), close but not identical. */
+    width: 72px;
+    text-align: center;
   }
   /* The button only inverts on its own direct hover -- not just from
      being anywhere in the row -- separate from the row's own white
@@ -270,11 +274,24 @@
     align-items: center;
     justify-content: space-between;
   }
-  .edit-fields, .edit-actions {
+  /* .edit-fields grows to fill whatever space Save/Delete don't need --
+     found via direct measurement a genuine 72px dead gap sitting between
+     the date field and Save on every row (338px fields + 152px actions
+     inside a 562px row). #editName absorbs that growth (free text
+     reasonably uses more room); #editDate stays fixed at its own
+     readable width below -- a DD/MM/YYYY box has no reason to stretch. */
+  .edit-fields {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  .edit-actions {
     display: flex;
     align-items: center;
     gap: 8px;
   }
+  #editName { flex: 1; min-width: 0; }
   .edit-panel input {
     background: var(--navy);
     border: 1px solid var(--border);

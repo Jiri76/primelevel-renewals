@@ -286,30 +286,35 @@
   }
   #editDate { flex: 0 0 auto; width: 110px; }
   .edit-panel button {
-    border: none;
+    border-style: solid;
+    border-width: 0.5px;
     border-radius: 6px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     font-size: 13px;
-    padding: 7px 12px;
+    padding: 6px 12px;
     cursor: pointer;
     width: 72px;
     text-align: center;
+    opacity: 0.45;
+    transition: opacity 0.15s ease, transform 0.1s ease;
   }
-  /* Save and Delete are visually identical -- same gold fill, same white
-     text, only the label differs. Same dim-until-hovered principle as the
-     "+" trigger (opacity 0.6 -> 1 on hover), not the fainter Update-button
-     level. */
+  /* Save and Delete now match .item-update-btn exactly -- same resting
+     style (transparent, white outline, dimmed) and same hover swap
+     (white fill, navy text) -- not the earlier gold-fill look. Still
+     visually identical to EACH OTHER (only the label differs), just
+     matching Update's language instead of their own separate one. */
   .edit-save-btn,
   .edit-delete-btn {
-    background: var(--gold);
+    background: transparent;
+    border-color: var(--white);
     color: var(--white);
-    opacity: 0.6;
-    transition: opacity 0.15s ease, transform 0.1s ease;
   }
   .edit-save-btn:hover,
   .edit-delete-btn:hover {
     opacity: 1;
+    background: var(--white);
+    color: var(--navy);
   }
   .edit-save-btn:active,
   .edit-delete-btn:active {

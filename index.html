@@ -44,6 +44,14 @@
     font-size: 32px;
     margin: 0;
   }
+  /* The signed-in screen's h1 gets its 32px gap from .app-header's own
+     margin-bottom (so the heading+sign-out row shares one measurement).
+     The sign-in screen's h1 isn't inside that wrapper, so without this
+     it had a genuine 0px gap straight into the card below it -- exactly
+     the "cluttered" look flagged. Same 32px value either way. */
+  #authContainer h1 {
+    margin-bottom: 32px;
+  }
   /* Margin moved here from h1 itself, so the header row (heading + sign
      out) still leaves the exact same 32px gap above the "+" that's
      already been measured and confirmed correct. */

@@ -91,14 +91,26 @@
     margin-top: 12px;
     opacity: 1;
   }
+  /* Padding and border-width are NOT part of the grid-rows 0fr collapse --
+     they render regardless of content height, so they must animate to
+     zero themselves too, or the "closed" state leaves invisible leftover
+     height (found via direct measurement: 34px of residual space even
+     though the row track itself was genuinely 0fr). */
   .add-popover-inner {
     min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: var(--input-bg);
-    border: 1px solid var(--border);
+    border-style: solid;
+    border-width: 0;
+    border-color: var(--border);
     border-radius: 10px;
+    padding: 0 18px;
+    transition: padding 0.25s ease, border-width 0.25s ease;
+  }
+  .add-popover.open .add-popover-inner {
+    border-width: 1px;
     padding: 16px 18px;
   }
   .add-row {

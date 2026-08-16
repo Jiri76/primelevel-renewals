@@ -80,10 +80,16 @@
   .add-trigger:active { transform: scale(0.94); }
   /* Idle auto-hide: fades out after 30s of no clicks anywhere on the
      page, reappears on the next click. Stays reserved in layout (opacity
-     only, not display:none) so nothing else shifts when it toggles. */
+     only, not display:none) so nothing else shifts when it toggles.
+     Deliberately NOT pointer-events:none -- found via live testing that
+     blocking clicks meant a click on the (invisible) trigger's exact
+     spot would reveal it via the document listener below but never
+     reach its own click handler, requiring an unexpected second click
+     to actually open the popover. Leaving it clickable while invisible
+     means one click both reveals it and performs the action, matching
+     what a real click there should always do. */
   .add-trigger.idle-hidden {
     opacity: 0;
-    pointer-events: none;
   }
 
   /* max-height 0 -> generous-fixed-value trick: a simpler, more reliable

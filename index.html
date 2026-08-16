@@ -174,11 +174,20 @@
      field size itself independently, is what makes them identical. */
   #newItemName, #editName { flex: 0 0 auto; width: 276px; }
   #newItemDate { flex: 0 0 auto; width: 110px; }
+  /* Hidden by default -- an empty error div still reserves its own
+     line-height plus margin-top even with no text in it, which was
+     silently making the bottom padding look bigger than the top (23px
+     vs 17px, found via direct measurement). Only takes up space once
+     there's an actual message to show. */
   .date-error {
+    display: none;
     color: var(--red);
     font-size: 13px;
     margin-top: 6px;
     flex-basis: 100%;
+  }
+  .date-error.visible {
+    display: block;
   }
   /* Now genuinely identical to .item-update-btn / .edit-save-btn --
      same 72x30 box, same resting/hover color swap -- not just similarly
@@ -410,7 +419,7 @@
       addPopover.classList.remove('open');
       nameInput.value = '';
       dateInput.value = '';
-      addDateError.textContent = '';
+      setError(addDateError, '');
       clearTimeout(collapseTimer);
     }
     function resetCollapseTimer() {
@@ -461,6 +470,14 @@
       scheduleTriggerHide();
     });
     scheduleTriggerHide();
+
+    // Toggles the .visible class alongside the text, so an empty error
+    // div takes up zero space (display:none) instead of quietly
+    // reserving its own line-height + margin-top even with nothing in it.
+    function setError(el, message) {
+      el.textContent = message;
+      el.classList.toggle('visible', !!message);
+    }
 
     // Hard-coded DD/MM/YYYY entry, same pattern as the VAT/sort-code fields
     // elsewhere -- no native date picker at all. Auto-formats as you type
@@ -651,15 +668,15 @@
       errorEl.className = 'date-error';
 
       saveBtn.addEventListener('click', async () => {
-        errorEl.textContent = '';
+        setError(errorEl, '');
         const newName = nameEl.value.trim();
         if (!newName) {
-          errorEl.textContent = 'Name is required.';
+          setError(errorEl, 'Name is required.');
           return;
         }
         const isoDate = parseDDMMYYYY(dateEl.value);
         if (!isoDate) {
-          errorEl.textContent = 'Please check your date.';
+          setError(errorEl, 'Please check your date.');
           return;
         }
         const { error } = await supabase
@@ -672,12 +689,12 @@
           const updatedItem = { ...item, item_name: newName, expiry_date: isoDate };
           row.replaceWith(buildItemRow(updatedItem));
         } else {
-          errorEl.textContent = 'Could not save — please check your connection and try again.';
+          setError(errorEl, 'Could not save — please check your connection and try again.');
         }
       });
 
       deleteBtn.addEventListener('click', async () => {
-        errorEl.textContent = '';
+        setError(errorEl, '');
         const { error } = await supabase.from('renewal_items').delete().eq('id', item.id);
         if (!error) {
           // Remove only THIS row -- every other open edit panel is
@@ -687,7 +704,7 @@
             itemList.innerHTML = '<div class="empty-state">Nothing tracked yet — add your first renewal above.</div>';
           }
         } else {
-          errorEl.textContent = 'Could not delete — please check your connection and try again.';
+          setError(errorEl, 'Could not delete — please check your connection and try again.');
         }
       });
 
@@ -710,18 +727,18 @@
     }
 
     addBtn.addEventListener('click', async () => {
-      addDateError.textContent = '';
+      setError(addDateError, '');
       const name = nameInput.value.trim();
       // Was a silent no-op before (nothing happened at all if either
       // field was left blank) -- now matches the edit panel's own
       // validation exactly, same wording, same red .date-error style.
       if (!name) {
-        addDateError.textContent = 'Name is required.';
+        setError(addDateError, 'Name is required.');
         return;
       }
       const isoDate = parseDDMMYYYY(dateInput.value);
       if (!isoDate) {
-        addDateError.textContent = 'Please check your date.';
+        setError(addDateError, 'Please check your date.');
         return;
       }
 
@@ -740,7 +757,7 @@
         if (emptyState) emptyState.remove();
         itemList.prepend(buildItemRow(data));
       } else {
-        addDateError.textContent = 'Could not save — please check your connection and try again.';
+        setError(addDateError, 'Could not save — please check your connection and try again.');
       }
     });
 

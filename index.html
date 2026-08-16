@@ -38,39 +38,18 @@
     margin: 0 auto;
     padding: 48px 20px 80px;
   }
+  /* Same 32px gap below the heading on both screens now -- there's no
+     sign-out link anymore (removed deliberately: the session already
+     stays signed in indefinitely regardless of any button, and a
+     one-email-per-account model means there's never a reason to switch
+     accounts on the same device), so h1 doesn't need a wrapper to share
+     the measurement with anything else. */
   h1 {
     color: var(--gold);
     font-weight: 700;
     font-size: 32px;
-    margin: 0;
+    margin: 0 0 32px;
   }
-  /* The signed-in screen's h1 gets its 32px gap from .app-header's own
-     margin-bottom (so the heading+sign-out row shares one measurement).
-     The sign-in screen's h1 isn't inside that wrapper, so without this
-     it had a genuine 0px gap straight into the card below it -- exactly
-     the "cluttered" look flagged. Same 32px value either way. */
-  #authContainer h1 {
-    margin-bottom: 32px;
-  }
-  /* Margin moved here from h1 itself, so the header row (heading + sign
-     out) still leaves the exact same 32px gap above the "+" that's
-     already been measured and confirmed correct. */
-  .app-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 32px;
-  }
-  .sign-out-link {
-    background: none;
-    border: none;
-    color: var(--placeholder);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    padding: 0;
-  }
-  .sign-out-link:hover { color: var(--white); }
 
   /* Sign-in card -- same card language as .add-popover-inner (input-bg
      background, var(--border) outline, 10px radius), same input styling
@@ -471,10 +450,7 @@
   </div>
 
   <div class="container" id="appContainer" style="display: none;">
-    <div class="app-header">
-      <h1>Renewals</h1>
-      <button class="sign-out-link" id="signOutBtn">Sign out</button>
-    </div>
+    <h1>Renewals</h1>
 
     <div class="add-wrapper">
       <button class="add-trigger" id="addTrigger" title="Add a renewal">+</button>
@@ -514,7 +490,6 @@
     const authSendBtn = document.getElementById('authSendBtn');
     const authError = document.getElementById('authError');
     const authSentMsg = document.getElementById('authSentMsg');
-    const signOutBtn = document.getElementById('signOutBtn');
 
     const EMAIL_REGEX = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
 
@@ -552,8 +527,6 @@
     authEmail.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') authSendBtn.click();
     });
-
-    signOutBtn.addEventListener('click', () => supabase.auth.signOut());
 
     // detectSessionInUrl (on by default) handles the magic-link callback
     // automatically -- exchanges the code, fires this listener, and

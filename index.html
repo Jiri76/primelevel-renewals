@@ -534,6 +534,8 @@
       });
       if (!error) {
         authSentMsg.textContent = `Check ${email} for the link.`;
+      } else if (error.status === 429) {
+        setError(authError, 'Please wait a minute before requesting another link.');
       } else {
         setError(authError, 'Could not send the link — please check your connection and try again.');
       }

@@ -376,7 +376,17 @@
     }
     function resetCollapseTimer() {
       clearTimeout(collapseTimer);
-      collapseTimer = setTimeout(closeAddPopover, 60000);
+      collapseTimer = setTimeout(() => {
+        closeAddPopover();
+        // The whole page has been idle long enough that even the OPEN
+        // form gave up and closed -- the "+" trigger shouldn't then wait
+        // out its own separate 30s countdown on top of that, it should
+        // disappear immediately alongside the form. A deliberate close
+        // (clicking "+" again, or a successful Save) is a real click and
+        // already resets the 30s countdown via the document listener
+        // below, so this only fires for genuine walk-away inactivity.
+        hideTriggerNow();
+      }, 60000);
     }
     addTrigger.addEventListener('click', () => {
       if (addPopover.classList.contains('open')) {
@@ -395,11 +405,15 @@
     // Guarded so it never hides while its own popover is open (that would
     // strand an open popover with no trigger to close it via).
     let hideTriggerTimer = null;
+    function hideTriggerNow() {
+      clearTimeout(hideTriggerTimer);
+      addTrigger.classList.add('idle-hidden');
+    }
     function scheduleTriggerHide() {
       clearTimeout(hideTriggerTimer);
       hideTriggerTimer = setTimeout(() => {
         if (!addPopover.classList.contains('open')) {
-          addTrigger.classList.add('idle-hidden');
+          hideTriggerNow();
         }
       }, 30000);
     }

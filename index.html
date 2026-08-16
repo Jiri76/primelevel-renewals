@@ -712,7 +712,13 @@
     addBtn.addEventListener('click', async () => {
       addDateError.textContent = '';
       const name = nameInput.value.trim();
-      if (!name || !dateInput.value) return;
+      // Was a silent no-op before (nothing happened at all if either
+      // field was left blank) -- now matches the edit panel's own
+      // validation exactly, same wording, same red .date-error style.
+      if (!name) {
+        addDateError.textContent = 'Name is required.';
+        return;
+      }
       const isoDate = parseDDMMYYYY(dateInput.value);
       if (!isoDate) {
         addDateError.textContent = 'Please check your date.';

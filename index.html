@@ -88,14 +88,15 @@
     margin: 0 0 100px;
     text-align: center;
   }
-  /* Sign-in card -- experimental first pass at a much bigger card
-     (700x700px, matching the item row's own real measured width of
-     660px content -- 700px is the card's own outer box, landing the
-     same overall footprint as an item row sitting inside the 700px
-     container). Was max-width:320px auto-height; explicit width+height
-     now. Content (email input, button) still just sits inside for
-     this first look -- what actually goes in the space is still to be
-     decided. */
+  /* Sign-in card -- width narrowed 700px -> 600px per explicit request
+     (height unchanged at 700px). margin:0 auto added here: the
+     container (#authContainer, max-width 740px) was sized to exactly
+     fit a 700px card with symmetric 20px padding either side, so at
+     700px wide there was no leftover room for left-vs-right position
+     to matter. At 600px there's 100px of slack in the container's
+     content area, and without explicit centering the card would sit
+     flush left (20px on the left, 120px on the right) -- margin:0 auto
+     keeps it genuinely centered regardless of width from here on. */
   .auth-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
@@ -104,8 +105,9 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    width: 700px;
+    width: 600px;
     height: 700px;
+    margin: 0 auto;
   }
   .auth-lead {
     color: var(--white);

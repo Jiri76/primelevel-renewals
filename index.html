@@ -182,10 +182,21 @@
     color: var(--navy);
   }
   .auth-btn:active { transform: scale(0.96); }
+  /* display:none by default, same established pattern as .date-error
+     just above -- an empty div with margin-top still reserves that
+     margin's worth of space even with zero text in it (this exact
+     project has hit this bug before; caught it again live here: the
+     button-to-bottom gap measured 57px instead of the intended 40px,
+     off by almost exactly this div's own margin-top). Only takes up
+     space once there's an actual message to show. */
   .auth-sent {
+    display: none;
     color: var(--green);
     font-size: 13px;
     margin-top: 16px;
+  }
+  .auth-sent.visible {
+    display: block;
   }
 
   /* Clicking the "+" opens the add-popover in normal page flow, right
@@ -633,6 +644,7 @@
     authSendBtn.addEventListener('click', async () => {
       setError(authError, '');
       authSentMsg.textContent = '';
+      authSentMsg.classList.remove('visible');
       const email = authEmail.value.trim();
       if (!EMAIL_REGEX.test(email)) {
         setError(authError, 'Please enter a valid email.');
@@ -644,6 +656,7 @@
       });
       if (!error) {
         authSentMsg.textContent = `Check ${email} for the link.`;
+        authSentMsg.classList.add('visible');
       } else if (error.status === 429) {
         setError(authError, 'Please wait a minute before requesting another link.');
       } else {

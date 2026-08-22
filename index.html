@@ -322,7 +322,7 @@
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 15px;
     border-radius: 6px;
     padding: 6px 12px;
     cursor: pointer;
@@ -378,7 +378,7 @@
   .item-name {
     color: var(--white);
     font-weight: 700;
-    font-size: 18px;
+    font-size: 20px;
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -407,7 +407,7 @@
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 15px;
     border-radius: 6px;
     padding: 6px 12px;
     cursor: pointer;
@@ -473,7 +473,7 @@
     border-radius: 6px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 15px;
     padding: 6px 12px;
     cursor: pointer;
     width: 72px;
@@ -632,7 +632,7 @@
     // The "+" trigger never moves -- opening the popover never shifts it.
     // Auto-closes after 60s of inactivity so it doesn't sit open forever
     // if you got distracted mid-entry, and closes on any click outside it
-    // too.
+    // too (see the document click listener further down for that part).
     let collapseTimer = null;
     function closeAddPopover() {
       addPopover.classList.remove('open');
@@ -669,16 +669,15 @@
     // trigger (and the space it occupies) collapses after 30s of no
     // clicks anywhere on the page (nothing being used) -- OR
     // immediately, the moment you click anywhere that isn't the
-    // trigger/popover itself, so you don't have to wait it out once
-    // you're just looking at the list rather than about to add
-    // something. Either way it expands back the instant anything is
-    // clicked while it's hidden. The class toggles on .add-wrapper,
+    // trigger/popover itself (and the popover isn't open -- see the
+    // click listener below for that case), so you don't have to wait
+    // it out once you're just looking at the list rather than about to
+    // add something. Either way it expands back the instant anything
+    // is clicked while it's hidden. The class toggles on .add-wrapper,
     // not just the trigger, so the item list rises to close the gap --
     // see the CSS comment on .add-wrapper.idle-hidden for the specific
     // trade-off this means (the trigger is no longer clickable at its
-    // old spot while hidden). Guarded so it never hides while its own
-    // popover is open (that would strand an open popover with no
-    // trigger to close it via).
+    // old spot while hidden).
     let hideTriggerTimer = null;
     function hideTriggerNow() {
       clearTimeout(hideTriggerTimer);
@@ -693,7 +692,8 @@
       }, 30000);
     }
     document.addEventListener('click', (e) => {
-      const popoverOpen = addPopover.classList.contains('open');
+      const clickedInsideWrapper = addWrapper.contains(e.target);
+      const popoverWasOpen = addPopover.classList.contains('open');
 
       if (addWrapper.classList.contains('idle-hidden')) {
         // Currently hidden -- any click anywhere reveals it, unchanged.
@@ -702,16 +702,30 @@
         return;
       }
 
-      // Currently visible. A click landing outside the trigger/popover
-      // hides it right away instead of waiting out the 30s timer --
-      // this is the new behavior. A click on the trigger or inside the
-      // open popover itself just keeps the 30s timer fresh (their own
-      // handlers above already manage what actually opens/closes).
-      // The popoverOpen guard is the same one as scheduleTriggerHide's
-      // timeout above -- never hide out from under an open popover.
-      if (addWrapper.contains(e.target)) {
+      if (clickedInsideWrapper) {
+        // Click landed on the trigger or inside the open popover itself
+        // -- their own handlers (addTrigger's toggle, Save, the inputs)
+        // already manage what happens; just keep the 30s timer fresh.
         scheduleTriggerHide();
-      } else if (!popoverOpen) {
+        return;
+      }
+
+      // Click landed outside the wrapper entirely. Two cases:
+      if (popoverWasOpen) {
+        // NEW: the popover now closes on an outside click too, not just
+        // via re-clicking "+" or waiting out its own 60s idle timer.
+        // Previously an outside click did nothing at all while the
+        // popover was open -- which is what made it feel like it took
+        // several clicks to dismiss (any click that missed the small
+        // "+" circle exactly was silently ignored). Deliberately closes
+        // only the popover here, not the "+" circle itself in the same
+        // click -- two things vanishing from one click would feel
+        // abrupt -- so its own 30s countdown restarts instead.
+        closeAddPopover();
+        scheduleTriggerHide();
+      } else {
+        // Popover wasn't open -- hide the "+" immediately, matching the
+        // "don't make me wait 30s" behavior from earlier this session.
         hideTriggerNow();
       }
     });

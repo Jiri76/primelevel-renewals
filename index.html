@@ -665,20 +665,35 @@
         }
       }, 30000);
     }
-    // Click anywhere outside the wrapper is a plain, instant toggle --
-    // reveals it when hidden, hides it (and closes the popover, if it
-    // was open) when visible -- same snappy, no-delay feel as clicking
-    // "+" itself, which toggles its own popover open/closed with zero
-    // debounce and was never a problem. An earlier version of this
-    // added a short cooldown here to stop two rapid clicks on the same
-    // spot from flip-flopping the state -- but that only ever showed up
-    // in an artificial same-tick test, and the cooldown itself became
-    // the real complaint (repeated fast clicking outside felt "frozen"
-    // compared to "+"'s own instant response). Removed -- this is a
-    // plain, deterministic function of current state, exactly like the
-    // "+" button's own toggle, and doesn't need debouncing any more
-    // than that does.
-    //
+    // Real bug found and fixed: dismissing an OPEN popover via an
+    // outside click sometimes needed 2-4 clicks, even though the JS
+    // itself is provably instant (confirmed via direct timing). The
+    // actual cause: dismissing while the popover is open collapses TWO
+    // things at once -- the popover's own shrink and the wrapper's own
+    // shrink -- and the wrapper's `idle-hidden` class is set instantly
+    // even though the *visual* collapse takes ~250ms. A follow-up
+    // click during that visual tail (a completely natural "did that
+    // work?" reaction) lands while the class already says "hidden," so
+    // it gets read as "reveal it" -- undoing the dismiss. This is why
+    // "+"'s own open/close toggle never has this problem: it only ever
+    // touches the popover's class, never the wrapper's hidden state, so
+    // there's no state to prematurely un-toggle. Two fixes, together:
+    // wrapperIsCollapsing gates the "reveal" branch until the wrapper's
+    // real `transitionend` fires (not a guessed delay -- tied to the
+    // actual animation, so it can never be too short or too long), and
+    // the popover is snapped shut instantly (no separate transition of
+    // its own) when dismissed this way, since the wrapper's own single
+    // collapse is about to hide it anyway -- one clean motion instead
+    // of two overlapping ones. Neither fix touches the "+" trigger's
+    // own click behavior, Save/Delete, or the simple bare-hide case
+    // (popover never opened) at all -- confirmed unchanged by diff.
+    let wrapperIsCollapsing = false;
+    addWrapper.addEventListener('transitionend', (e) => {
+      if (e.target === addWrapper && e.propertyName === 'max-height') {
+        wrapperIsCollapsing = false;
+      }
+    });
+
     // Listens on `mousedown`, not `click` -- deliberately. A `click`
     // event only fires if the mouse goes down AND up on (near) the
     // same spot; any slight drift between the two (easy on a trackpad,
@@ -694,7 +709,12 @@
       const clickedInsideWrapper = addWrapper.contains(e.target);
 
       if (addWrapper.classList.contains('idle-hidden')) {
-        // Currently hidden -- any click anywhere reveals it.
+        // Currently hidden -- any click anywhere reveals it, UNLESS
+        // it's still visually mid-collapse from a dismiss a moment
+        // ago (see wrapperIsCollapsing above) -- a click during that
+        // window is almost always someone reacting to "did that work?"
+        // not a genuine request to bring it back.
+        if (wrapperIsCollapsing) return;
         addWrapper.classList.remove('idle-hidden');
         scheduleTriggerHide();
         return;
@@ -714,7 +734,20 @@
       // (if it was open) AND hide the "+" circle together, in this one
       // click, instantly.
       if (addPopover.classList.contains('open')) {
+        // Snap shut instantly, no transition of its own -- the
+        // wrapper's own collapse (below) is about to hide it anyway.
+        addPopover.style.transition = 'none';
         closeAddPopover();
+        void addPopover.offsetHeight; // force the no-transition style to actually apply
+        addPopover.style.transition = '';
+        // Only gate the next reveal-click here, in the compound
+        // (popover-was-open) case -- this is the one with the longer,
+        // more complex visual tail that caused real confusion. The
+        // simple bare-hide case (popover never opened) stays exactly
+        // as instant and ungated as it was already proven to be --
+        // confirmed via a 6-rapid-click test earlier this session, and
+        // deliberately not touched here.
+        wrapperIsCollapsing = true;
       }
       hideTriggerNow();
     });

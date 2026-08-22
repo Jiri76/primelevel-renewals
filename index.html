@@ -68,12 +68,27 @@
     text-align: center;
   }
 
-  /* Sign-in card -- same card language as .add-popover-inner (input-bg
-     background, var(--border) outline, 10px radius), same input styling
-     as every other field on the page, same gold-free white-outline/
-     hover-swap button language as Update/Save/Delete elsewhere. Only
-     genuinely new thing here is the wider auto-width button, since
-     "Send magic link" doesn't fit the fixed 72px used for single words. */
+  /* Sign-in screen title: matched to #appContainer h1 exactly (50px,
+     centered, same 100px top-of-page padding) rather than the smaller
+     32px/left-aligned base h1 rule -- scoped to #authContainer only,
+     same pattern as the app screen's own override, so this doesn't
+     touch the app screen's title at all. */
+  #authContainer {
+    padding-top: 100px;
+  }
+  #authContainer h1 {
+    font-size: 50px;
+    margin: 0 0 100px;
+    text-align: center;
+  }
+  /* Sign-in card -- experimental first pass at a much bigger card
+     (700x700px, matching the item row's own real measured width of
+     660px content -- 700px is the card's own outer box, landing the
+     same overall footprint as an item row sitting inside the 700px
+     container). Was max-width:320px auto-height; explicit width+height
+     now. Content (email input, button) still just sits inside for
+     this first look -- what actually goes in the space is still to be
+     decided. */
   .auth-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
@@ -82,7 +97,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-width: 320px;
+    width: 700px;
+    height: 700px;
   }
   .auth-lead {
     color: var(--white);

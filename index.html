@@ -937,7 +937,15 @@
       const errorEl = document.createElement('div');
       errorEl.className = 'date-error';
 
-      saveBtn.addEventListener('click', async () => {
+      // mousedown, not click -- same reasoning as the row's own
+      // openEdit trigger above: Save/Delete live inside an .item row,
+      // outside .add-wrapper, so a click here also reaches the
+      // document-level mousedown listener, which can hide the "+"
+      // circle (an animated height change) and shift this row -- and
+      // therefore this button -- out from under the cursor before a
+      // `click` would have fired on mouse-up. mousedown resolves the
+      // real action in the same synchronous pass, immune to that.
+      saveBtn.addEventListener('mousedown', async () => {
         setError(errorEl, '');
         const newName = nameEl.value.trim();
         if (!newName) {
@@ -963,7 +971,8 @@
         }
       });
 
-      deleteBtn.addEventListener('click', async () => {
+      // mousedown, not click -- same reasoning as Save just above.
+      deleteBtn.addEventListener('mousedown', async () => {
         setError(errorEl, '');
         const { error } = await supabase.from('renewal_items').delete().eq('id', item.id);
         if (!error) {

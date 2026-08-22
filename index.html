@@ -72,9 +72,16 @@
      centered, same 100px top-of-page padding) rather than the smaller
      32px/left-aligned base h1 rule -- scoped to #authContainer only,
      same pattern as the app screen's own override, so this doesn't
-     touch the app screen's title at all. */
+     touch the app screen's title at all.
+     max-width: 740px -- real bug caught by measurement, not eyeballed:
+     the shared .container's 700px max-width leaves only 660px of
+     actual content room (20px padding each side), so a 700px-wide
+     card poked 20px past the right padding while sitting flush against
+     the left. 740px gives the 700px card a genuine, symmetric 20px on
+     both sides -- confirmed live after this fix, not assumed. */
   #authContainer {
     padding-top: 100px;
+    max-width: 740px;
   }
   #authContainer h1 {
     font-size: 50px;

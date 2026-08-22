@@ -320,13 +320,21 @@
      one side, 13px on the other; 90px gives a genuinely symmetric
      16px/16px margin, confirmed by direct measurement), same
      resting/hover color swap -- not just similarly sized and a
-     different gold-fill language. */
+     different gold-fill language. Border is a full 1px here, not the
+     0.5px used elsewhere (the "+" circle, tiles) -- this button sits
+     directly next to a 1px-bordered input and needs to match its
+     height exactly; 0.5px is subject to inconsistent sub-pixel
+     rounding across devices (confirmed: renders as a full 1px on one
+     display, visibly thinner on another), so relying on it to happen
+     to round up to the same value as the input's explicit 1px is
+     fragile. A matching explicit 1px on both removes that risk
+     entirely rather than hoping the rounding lines up. */
   .add-save-btn {
     flex: 0 0 auto;
     width: 90px;
     text-align: center;
     background: transparent;
-    border: 0.5px solid var(--white);
+    border: 1px solid var(--white);
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
@@ -429,9 +437,14 @@
     gap: 8px;
   }
   #editDate { flex: 0 0 auto; width: 110px; }
+  /* border-width: full 1px, not the 0.5px used elsewhere -- same
+     reasoning as .add-save-btn above: this button sits directly next
+     to the 1px-bordered Name/Date inputs and needs to match their
+     height exactly, which a sub-pixel border can't reliably guarantee
+     across different screens. */
   .edit-panel button {
     border-style: solid;
-    border-width: 0.5px;
+    border-width: 1px;
     border-radius: 6px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;

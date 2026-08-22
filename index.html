@@ -88,45 +88,64 @@
     margin: 0 0 100px;
     text-align: center;
   }
-  /* Sign-in card -- width narrowed 700px -> 600px per explicit request
-     (height unchanged at 700px). margin:0 auto added here: the
-     container (#authContainer, max-width 740px) was sized to exactly
-     fit a 700px card with symmetric 20px padding either side, so at
-     700px wide there was no leftover room for left-vs-right position
-     to matter. At 600px there's 100px of slack in the container's
-     content area, and without explicit centering the card would sit
-     flush left (20px on the left, 120px on the right) -- margin:0 auto
-     keeps it genuinely centered regardless of width from here on. */
+  /* Sign-in card -- 500x600px (width/height per explicit request).
+     padding: 50px explicit top, 24px left/right unchanged, 40px bottom
+     (a reasoned, not-arbitrary choice -- less than the 50px top so the
+     card doesn't read top-heavy, but enough to keep Send magic link
+     off the bottom edge once space-between distributes the 3 children).
+     align-items:center -- each child (lead text, email, button) is now
+     centered as a whole object, not just stretched full-width. gap
+     removed in favor of justify-content:space-between, so the vertical
+     rhythm between all 3 children is driven by ONE mechanism (genuinely
+     equal gaps) rather than a fixed `gap` fighting with space-between's
+     own math. */
   .auth-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 24px;
+    padding: 50px 24px 40px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    width: 600px;
-    height: 700px;
+    align-items: center;
+    justify-content: space-between;
+    width: 500px;
+    height: 600px;
     margin: 0 auto;
   }
   .auth-lead {
     color: var(--white);
-    font-size: 15px;
+    font-size: 20px;
+    text-align: center;
     margin: 0;
   }
+  /* width: a deliberate size, not shrink-to-fit or full-bleed -- 380px
+     reads as a clean, intentional field within the 452px available
+     (500px card - 24px padding each side), not cramped or edge-to-edge.
+     padding bumped 8px 10px -> 14px 16px to match the bigger 20px font
+     (same reasoning as the button-height fix earlier this session --
+     an input's box should grow with its font, not stay pinched around
+     bigger text) -- confirmed by measurement below, not assumed. */
   #authEmail {
     background: var(--navy);
     border: 1px solid var(--border);
     border-radius: 6px;
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
-    font-size: 13px;
-    padding: 8px 10px;
+    font-size: 20px;
+    text-align: center;
+    width: 380px;
+    padding: 14px 16px;
     outline: none;
   }
   #authEmail::placeholder { color: var(--placeholder); }
+  /* align-self:center (was flex-start) -- centered as an object like
+     the other two now, matching the explicit "all three centered" ask.
+     Font-size intentionally left at 13px -- only the lead text and
+     email were asked to move to 20px; a 20px button would visually
+     overpower Save/Delete/Update's own 15px language used everywhere
+     else in this app, which this button already otherwise matches. */
   .auth-btn {
-    align-self: flex-start;
+    align-self: center;
     background: transparent;
     border: 0.5px solid var(--white);
     color: var(--white);

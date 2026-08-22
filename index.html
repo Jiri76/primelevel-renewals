@@ -665,12 +665,34 @@
         }
       }, 30000);
     }
+    // Real bug found and fixed: clicking anywhere outside the wrapper is
+    // a raw toggle -- reveals it when hidden, hides it when visible.
+    // Two clicks on the SAME spot in a row (background click, then the
+    // exact same background click again -- an easy thing to do while
+    // trying to dismiss it) flip it back and forth: hide, then reveal,
+    // then needing a THIRD click to actually hide it again. Confirmed
+    // directly: two clicks fired back-to-back on the same element left
+    // it VISIBLE again, not hidden. clickCooldownUntil swallows a
+    // repeat state-changing click for a short window after the last
+    // one, so a rapid click (or two) settles into one final state
+    // instead of flickering -- long enough to absorb an impatient
+    // repeat click, short enough that a genuinely new click a moment
+    // later still works instantly. Only guards the two state-FLIPPING
+    // branches below (reveal, hide) -- clicking inside the wrapper
+    // itself (the trigger, the open popover) is never delayed by this.
+    let clickCooldownUntil = 0;
+    const CLICK_COOLDOWN_MS = 400;
+
     document.addEventListener('click', (e) => {
       const clickedInsideWrapper = addWrapper.contains(e.target);
       const popoverWasOpen = addPopover.classList.contains('open');
+      const now = Date.now();
 
       if (addWrapper.classList.contains('idle-hidden')) {
-        // Currently hidden -- any click anywhere reveals it, unchanged.
+        // Currently hidden -- any click anywhere reveals it, unchanged
+        // -- unless it just hid a moment ago (see comment above).
+        if (now < clickCooldownUntil) return;
+        clickCooldownUntil = now + CLICK_COOLDOWN_MS;
         addWrapper.classList.remove('idle-hidden');
         scheduleTriggerHide();
         return;
@@ -680,26 +702,27 @@
         // Click landed on the trigger or inside the open popover itself
         // -- their own handlers (addTrigger's toggle, Save, the inputs)
         // already manage what happens; just keep the 30s timer fresh.
+        // No cooldown here -- this isn't part of the flip-flop above.
         scheduleTriggerHide();
         return;
       }
 
       // Click landed outside the wrapper entirely. Two cases:
       if (popoverWasOpen) {
-        // NEW: the popover now closes on an outside click too, not just
-        // via re-clicking "+" or waiting out its own 60s idle timer.
-        // Previously an outside click did nothing at all while the
-        // popover was open -- which is what made it feel like it took
-        // several clicks to dismiss (any click that missed the small
-        // "+" circle exactly was silently ignored). Deliberately closes
-        // only the popover here, not the "+" circle itself in the same
-        // click -- two things vanishing from one click would feel
-        // abrupt -- so its own 30s countdown restarts instead.
+        // The popover closes on an outside click too, not just via
+        // re-clicking "+" or waiting out its own 60s idle timer.
+        // Deliberately closes only the popover here, not the "+"
+        // circle itself in the same click -- two things vanishing from
+        // one click would feel abrupt -- so its own 30s countdown
+        // restarts instead.
         closeAddPopover();
         scheduleTriggerHide();
       } else {
         // Popover wasn't open -- hide the "+" immediately, matching the
-        // "don't make me wait 30s" behavior from earlier this session.
+        // "don't make me wait 30s" behavior -- unless it just revealed
+        // a moment ago (see comment above).
+        if (now < clickCooldownUntil) return;
+        clickCooldownUntil = now + CLICK_COOLDOWN_MS;
         hideTriggerNow();
       }
     });

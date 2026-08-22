@@ -311,11 +311,15 @@
     display: block;
   }
   /* Now genuinely identical to .item-update-btn / .edit-save-btn --
-     same 72x30 box, same resting/hover color swap -- not just similarly
-     sized and a different gold-fill language. */
+     same 90x33 box (widened from 72x30 alongside the 13px->15px font
+     bump -- 72px left "Update"/"Delete" text 1px from the border on
+     one side, 13px on the other; 90px gives a genuinely symmetric
+     16px/16px margin, confirmed by direct measurement), same
+     resting/hover color swap -- not just similarly sized and a
+     different gold-fill language. */
   .add-save-btn {
     flex: 0 0 auto;
-    width: 72px;
+    width: 90px;
     text-align: center;
     background: transparent;
     border: 0.5px solid var(--white);
@@ -413,9 +417,10 @@
     cursor: pointer;
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
-    /* Same fixed width as Save/Delete (72px) -- Update was previously
-       auto-sized to its own text (76px natural), close but not identical. */
-    width: 72px;
+    /* Same fixed width as Save/Delete (90px, widened alongside the
+       13px->15px font bump -- see .add-save-btn's comment for the
+       measurement that produced this exact number). */
+    width: 90px;
     text-align: center;
   }
   /* The button only inverts on its own direct hover -- not just from
@@ -476,7 +481,7 @@
     font-size: 15px;
     padding: 6px 12px;
     cursor: pointer;
-    width: 72px;
+    width: 90px;
     text-align: center;
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;

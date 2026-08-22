@@ -665,33 +665,24 @@
         }
       }, 30000);
     }
-    // Real bug found and fixed: clicking anywhere outside the wrapper is
-    // a raw toggle -- reveals it when hidden, hides it when visible.
-    // Two clicks on the SAME spot in a row (background click, then the
-    // exact same background click again -- an easy thing to do while
-    // trying to dismiss it) flip it back and forth: hide, then reveal,
-    // then needing a THIRD click to actually hide it again. Confirmed
-    // directly: two clicks fired back-to-back on the same element left
-    // it VISIBLE again, not hidden. clickCooldownUntil swallows a
-    // repeat state-changing click for a short window after the last
-    // one, so a rapid click (or two) settles into one final state
-    // instead of flickering -- long enough to absorb an impatient
-    // repeat click, short enough that a genuinely new click a moment
-    // later still works instantly. Only guards the two state-FLIPPING
-    // branches below (reveal, hide) -- clicking inside the wrapper
-    // itself (the trigger, the open popover) is never delayed by this.
-    let clickCooldownUntil = 0;
-    const CLICK_COOLDOWN_MS = 400;
-
+    // Click anywhere outside the wrapper is a plain, instant toggle --
+    // reveals it when hidden, hides it (and closes the popover, if it
+    // was open) when visible -- same snappy, no-delay feel as clicking
+    // "+" itself, which toggles its own popover open/closed with zero
+    // debounce and was never a problem. An earlier version of this
+    // added a short cooldown here to stop two rapid clicks on the same
+    // spot from flip-flopping the state -- but that only ever showed up
+    // in an artificial same-tick test, and the cooldown itself became
+    // the real complaint (repeated fast clicking outside felt "frozen"
+    // compared to "+"'s own instant response). Removed -- this is a
+    // plain, deterministic function of current state, exactly like the
+    // "+" button's own toggle, and doesn't need debouncing any more
+    // than that does.
     document.addEventListener('click', (e) => {
       const clickedInsideWrapper = addWrapper.contains(e.target);
-      const now = Date.now();
 
       if (addWrapper.classList.contains('idle-hidden')) {
-        // Currently hidden -- any click anywhere reveals it, unchanged
-        // -- unless it just hid a moment ago (see comment above).
-        if (now < clickCooldownUntil) return;
-        clickCooldownUntil = now + CLICK_COOLDOWN_MS;
+        // Currently hidden -- any click anywhere reveals it.
         addWrapper.classList.remove('idle-hidden');
         scheduleTriggerHide();
         return;
@@ -702,22 +693,14 @@
         // (including the empty space between fields and Save inside the
         // row -- still a descendant of the wrapper) -- their own
         // handlers (addTrigger's toggle, Save, the inputs) already
-        // manage what happens; just keep the 30s timer fresh. No
-        // cooldown here -- this isn't part of the flip-flop above.
+        // manage what happens; just keep the 30s timer fresh.
         scheduleTriggerHide();
         return;
       }
 
       // Click landed outside the wrapper entirely -- close the popover
       // (if it was open) AND hide the "+" circle together, in this one
-      // click. Previously these were two separate steps (close the
-      // popover on the first outside click, hide the circle only on a
-      // SECOND one) on the theory that both vanishing at once would
-      // feel abrupt -- real feedback was the opposite: it read as "the
-      // first click didn't do anything," needing 2-3 clicks to actually
-      // get rid of it. One click, one outcome now.
-      if (now < clickCooldownUntil) return;
-      clickCooldownUntil = now + CLICK_COOLDOWN_MS;
+      // click, instantly.
       if (addPopover.classList.contains('open')) {
         closeAddPopover();
       }

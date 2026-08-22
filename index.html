@@ -360,6 +360,12 @@
   /* height: explicit 70px (was an incidental 64px, produced by padding
      + line-height, not a chosen value) -- content stays vertically
      centered via align-items:center regardless. */
+  /* user-select:none -- the row is a click target, not readable text,
+     so any tiny mouse drift during a click shouldn't trigger the
+     browser's native text-selection (the blue highlight). Real bug
+     caught via screenshot: clicking around highlighted "House" and
+     "529 days to go" like selected text, since nothing was stopping
+     the browser's default selection behavior on plain text content. */
   .item {
     display: flex;
     align-items: center;
@@ -372,6 +378,7 @@
     background: var(--input-bg);
     margin-bottom: 15px;
     cursor: pointer;
+    user-select: none;
     transition: border-color 0.15s ease;
   }
   /* Hovering the row frames all four sides in white (same thin 1px

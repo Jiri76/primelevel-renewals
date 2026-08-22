@@ -33,8 +33,14 @@
     font-family: 'Montserrat', sans-serif;
     min-height: 100%;
   }
+  /* max-width: 640px -> 700px, per explicit request to make the item
+     rows a bit wider. Shared by both screens (sign-in and app) -- the
+     sign-in card has its own separate max-width:320px so it's
+     unaffected in size, just sits with a little more breathing room
+     around it now. Still margin:0 auto, so everything stays centered
+     exactly as before. */
   .container {
-    max-width: 640px;
+    max-width: 700px;
     margin: 0 auto;
     padding: 48px 20px 80px;
   }
@@ -335,11 +341,15 @@
   /* Item list -- urgency is shown purely through the countdown text color
      (see .item-countdown below), not a separate border stripe -- one clean
      signal, not two redundant ones. */
+  /* height: explicit 70px (was an incidental 64px, produced by padding
+     + line-height, not a chosen value) -- content stays vertically
+     centered via align-items:center regardless. */
   .item {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    height: 70px;
     padding: 16px 18px;
     border-radius: 10px;
     border: 0.5px solid var(--border);

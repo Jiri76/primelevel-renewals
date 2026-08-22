@@ -679,18 +679,27 @@
     // touches the popover's class, never the wrapper's hidden state, so
     // there's no state to prematurely un-toggle. Two fixes, together:
     // wrapperIsCollapsing gates the "reveal" branch until the wrapper's
-    // real `transitionend` fires (not a guessed delay -- tied to the
-    // actual animation, so it can never be too short or too long), and
-    // the popover is snapped shut instantly (no separate transition of
-    // its own) when dismissed this way, since the wrapper's own single
-    // collapse is about to hide it anyway -- one clean motion instead
-    // of two overlapping ones. Neither fix touches the "+" trigger's
-    // own click behavior, Save/Delete, or the simple bare-hide case
-    // (popover never opened) at all -- confirmed unchanged by diff.
+    // real `transitionend` fires, backed by a 350ms fallback timer as a
+    // safety net -- if `transitionend` ever fails to fire for any
+    // reason (an interrupted transition, a backgrounded tab pausing
+    // rendering, a browser quirk), the fallback guarantees the gate
+    // clears on its own rather than staying stuck forever, which would
+    // be a worse bug than the one being fixed. And the popover is
+    // snapped shut instantly (no separate transition of its own) when
+    // dismissed this way, since the wrapper's own single collapse is
+    // about to hide it anyway -- one clean motion instead of two
+    // overlapping ones. Neither fix touches the "+" trigger's own click
+    // behavior, Save/Delete, or the simple bare-hide case (popover
+    // never opened) at all -- confirmed unchanged by diff.
     let wrapperIsCollapsing = false;
+    let wrapperCollapseFallbackTimer = null;
+    function clearWrapperCollapsingGate() {
+      wrapperIsCollapsing = false;
+      clearTimeout(wrapperCollapseFallbackTimer);
+    }
     addWrapper.addEventListener('transitionend', (e) => {
       if (e.target === addWrapper && e.propertyName === 'max-height') {
-        wrapperIsCollapsing = false;
+        clearWrapperCollapsingGate();
       }
     });
 
@@ -748,6 +757,8 @@
         // confirmed via a 6-rapid-click test earlier this session, and
         // deliberately not touched here.
         wrapperIsCollapsing = true;
+        clearTimeout(wrapperCollapseFallbackTimer);
+        wrapperCollapseFallbackTimer = setTimeout(clearWrapperCollapsingGate, 350);
       }
       hideTriggerNow();
     });

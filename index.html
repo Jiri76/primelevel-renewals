@@ -365,6 +365,16 @@
   .item.row-hovered {
     border-color: var(--white);
   }
+  /* Update only exists in the layout while the row is hovered -- not
+     just faded (opacity would still reserve its 72px + gap, leaving
+     the countdown short of the true right edge). display:none removes
+     it from the flex row entirely, including its share of .item's own
+     `gap`, so justify-content:space-between naturally pushes the
+     countdown flush against the row's right padding on its own --
+     no extra positioning logic needed for the "shifts right" behavior. */
+  .item.row-hovered .item-update-btn {
+    display: block;
+  }
   .item-name {
     color: var(--white);
     font-weight: 700;
@@ -384,9 +394,13 @@
   }
   /* Single action on the collapsed row -- white outline + white text,
      the same secondary-button language used everywhere else on the page.
-     Dimmed until the row is hovered, so a long list doesn't read as a
-     wall of bold buttons. */
+     Hidden entirely until the row is hovered (see .item.row-hovered
+     .item-update-btn above), then starts dimmed and brightens further
+     on direct hover -- so a long list doesn't read as a wall of bold
+     buttons, and the countdown gets the full row width to itself the
+     rest of the time. */
   .item-update-btn {
+    display: none;
     flex: 0 0 auto;
     background: transparent;
     border: 0.5px solid var(--white);

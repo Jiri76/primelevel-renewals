@@ -865,11 +865,25 @@
       // showEditPanel does anything else), so a click that bubbles up
       // from inside the newly-built edit panel (an input, Save, Delete)
       // can never re-open edit mode on a row that's already in it.
+      //
+      // Listens on `mousedown`, not `click` -- real bug found: a click
+      // on a row also reaches the document-level mousedown listener
+      // (see below), which can reveal or collapse the "+" wrapper --
+      // an animated height change that shifts the whole item list up
+      // or down while the mouse button is still down. By the time
+      // `click` would have fired (on mouse-up), the row has physically
+      // moved out from under the cursor, so the release lands
+      // somewhere else and edit mode never opens. Using `mousedown`
+      // here resolves everything in the same synchronous pass, before
+      // any layout shift has a chance to happen -- same fix, same
+      // reasoning as the outside-dismiss listener, just applied to
+      // this row-level trigger instead. The outside-dismiss listener
+      // itself is untouched.
       function openEdit() {
-        row.removeEventListener('click', openEdit);
+        row.removeEventListener('mousedown', openEdit);
         showEditPanel(row, item, name, countdown);
       }
-      row.addEventListener('click', openEdit);
+      row.addEventListener('mousedown', openEdit);
 
       row.append(name, countdown);
       return row;

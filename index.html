@@ -89,16 +89,18 @@
     text-align: center;
   }
   /* Sign-in card -- 500x600px (width/height per explicit request).
-     padding: 50px explicit top, 24px left/right unchanged, 40px bottom
-     (a reasoned, not-arbitrary choice -- less than the 50px top so the
-     card doesn't read top-heavy, but enough to keep Send magic link
-     off the bottom edge once space-between distributes the 3 children).
-     align-items:center -- each child (lead text, email, button) is now
-     centered as a whole object, not just stretched full-width. gap
-     removed in favor of justify-content:space-between, so the vertical
-     rhythm between all 3 children is driven by ONE mechanism (genuinely
-     equal gaps) rather than a fixed `gap` fighting with space-between's
-     own math. */
+     padding: 50px explicit top, 24px left/right unchanged, 40px bottom.
+     Real bug found and fixed: the two status divs below (#authError,
+     #authSentMsg) are also children of this flex column -- with
+     justify-content:space-between applied directly here, they silently
+     became a 4th "slot" in the distribution, stealing space meant for
+     the 3 real design elements (measured live: a 173px gap after the
+     button instead of the intended even spacing). Fixed by moving
+     justify-content:space-between onto .auth-card-main (below) -- a
+     wrapper around just the 3 elements that were actually asked to be
+     spread evenly -- so the status messages sit quietly underneath
+     without disturbing that rhythm, gracefully shrinking it slightly
+     on the rare occasion one is actually showing. */
   .auth-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
@@ -107,10 +109,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
     width: 500px;
     height: 600px;
     margin: 0 auto;
+  }
+  .auth-card-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    width: 100%;
   }
   .auth-lead {
     color: var(--white);
@@ -121,20 +130,24 @@
   /* width: a deliberate size, not shrink-to-fit or full-bleed -- 380px
      reads as a clean, intentional field within the 452px available
      (500px card - 24px padding each side), not cramped or edge-to-edge.
-     padding bumped 8px 10px -> 14px 16px to match the bigger 20px font
+     padding bumped 8px 10px -> 16px 18px to match the bigger 20px font
      (same reasoning as the button-height fix earlier this session --
      an input's box should grow with its font, not stay pinched around
-     bigger text) -- confirmed by measurement below, not assumed. */
+     bigger text), and border-radius bumped 6px -> 8px -- at this much
+     larger size the original 6px (right for a compact 13px-font field)
+     started to look slightly undersized for the box; 8px keeps the
+     same "soft, not pill-shaped" language as the 10px card/6-8px
+     button family around it, just scaled to match. */
   #authEmail {
     background: var(--navy);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
     font-size: 20px;
     text-align: center;
     width: 380px;
-    padding: 14px 16px;
+    padding: 16px 18px;
     outline: none;
   }
   #authEmail::placeholder { color: var(--placeholder); }
@@ -142,8 +155,13 @@
      the other two now, matching the explicit "all three centered" ask.
      Font-size intentionally left at 13px -- only the lead text and
      email were asked to move to 20px; a 20px button would visually
-     overpower Save/Delete/Update's own 15px language used everywhere
-     else in this app, which this button already otherwise matches. */
+     overpower Save/Delete/Update's own 13-15px language used
+     everywhere else in this app, which this button already otherwise
+     matches -- keeping it grounds the button as "the same kind of
+     button," not a jarring one-off. Padding widened 8px 16px -> 14px
+     40px so it reads as a real primary action -- the single most
+     important thing on this screen -- rather than a small utility
+     button lost in a much bigger, more spacious card. */
   .auth-btn {
     align-self: center;
     background: transparent;
@@ -153,7 +171,7 @@
     font-weight: 700;
     font-size: 13px;
     border-radius: 6px;
-    padding: 8px 16px;
+    padding: 14px 40px;
     cursor: pointer;
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
@@ -167,6 +185,7 @@
   .auth-sent {
     color: var(--green);
     font-size: 13px;
+    margin-top: 16px;
   }
 
   /* Clicking the "+" opens the add-popover in normal page flow, right
@@ -547,9 +566,11 @@
   <div class="container" id="authContainer" style="display: none;">
     <h1>Renewals</h1>
     <div class="auth-card">
-      <p class="auth-lead">Sign in to see your renewals.</p>
-      <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" />
-      <button id="authSendBtn" class="auth-btn">Send magic link</button>
+      <div class="auth-card-main">
+        <p class="auth-lead">Sign in to see your renewals.</p>
+        <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        <button id="authSendBtn" class="auth-btn">Send magic link</button>
+      </div>
       <div class="date-error" id="authError"></div>
       <div class="auth-sent" id="authSentMsg"></div>
     </div>

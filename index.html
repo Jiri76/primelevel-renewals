@@ -685,7 +685,6 @@
 
     document.addEventListener('click', (e) => {
       const clickedInsideWrapper = addWrapper.contains(e.target);
-      const popoverWasOpen = addPopover.classList.contains('open');
       const now = Date.now();
 
       if (addWrapper.classList.contains('idle-hidden')) {
@@ -700,31 +699,29 @@
 
       if (clickedInsideWrapper) {
         // Click landed on the trigger or inside the open popover itself
-        // -- their own handlers (addTrigger's toggle, Save, the inputs)
-        // already manage what happens; just keep the 30s timer fresh.
-        // No cooldown here -- this isn't part of the flip-flop above.
+        // (including the empty space between fields and Save inside the
+        // row -- still a descendant of the wrapper) -- their own
+        // handlers (addTrigger's toggle, Save, the inputs) already
+        // manage what happens; just keep the 30s timer fresh. No
+        // cooldown here -- this isn't part of the flip-flop above.
         scheduleTriggerHide();
         return;
       }
 
-      // Click landed outside the wrapper entirely. Two cases:
-      if (popoverWasOpen) {
-        // The popover closes on an outside click too, not just via
-        // re-clicking "+" or waiting out its own 60s idle timer.
-        // Deliberately closes only the popover here, not the "+"
-        // circle itself in the same click -- two things vanishing from
-        // one click would feel abrupt -- so its own 30s countdown
-        // restarts instead.
+      // Click landed outside the wrapper entirely -- close the popover
+      // (if it was open) AND hide the "+" circle together, in this one
+      // click. Previously these were two separate steps (close the
+      // popover on the first outside click, hide the circle only on a
+      // SECOND one) on the theory that both vanishing at once would
+      // feel abrupt -- real feedback was the opposite: it read as "the
+      // first click didn't do anything," needing 2-3 clicks to actually
+      // get rid of it. One click, one outcome now.
+      if (now < clickCooldownUntil) return;
+      clickCooldownUntil = now + CLICK_COOLDOWN_MS;
+      if (addPopover.classList.contains('open')) {
         closeAddPopover();
-        scheduleTriggerHide();
-      } else {
-        // Popover wasn't open -- hide the "+" immediately, matching the
-        // "don't make me wait 30s" behavior -- unless it just revealed
-        // a moment ago (see comment above).
-        if (now < clickCooldownUntil) return;
-        clickCooldownUntil = now + CLICK_COOLDOWN_MS;
-        hideTriggerNow();
       }
+      hideTriggerNow();
     });
     scheduleTriggerHide();
 

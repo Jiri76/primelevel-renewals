@@ -119,8 +119,7 @@
     font-size: 13px;
   }
 
-  /* The "+" trigger never moves -- it stays anchored in this exact spot.
-     Clicking it opens the add-popover in normal page flow, right
+  /* Clicking the "+" opens the add-popover in normal page flow, right
      underneath -- it pushes the list down rather than floating over it,
      so it never overlaps the first item. Same resting/hover color
      language as .item-update-btn (below) -- transparent + white outline
@@ -128,14 +127,43 @@
      as genuinely identical, not just similar. */
   /* margin-top: exact 100px title-to-circle gap (h1's own margin was
      zeroed out for this screen -- see #appContainer h1 above -- so
-     this is the only thing creating that gap now).
-     margin-bottom: exact 100px circle-to-list gap. Paired with
-     .empty-state's top padding being removed below, so the visible
-     gap to "Nothing tracked yet..." is exactly this 100px, not
-     100 + whatever padding .empty-state used to add on top of it. */
+     this is the only thing creating that gap now). margin-top NEVER
+     changes, idle-hidden or not -- title-to-wrapper is always 100px.
+     margin-bottom + max-height: exact 100px circle-to-list gap when
+     visible, collapsing to 0 when idle-hidden (see .add-wrapper.
+     idle-hidden below) so the list rises to sit exactly 100px below
+     the title with nothing in between, not a leftover empty 256px gap
+     where an invisible circle used to be. Paired with .empty-state's
+     own top padding being removed below, so the visible gap to
+     "Nothing tracked yet..." (or the first real item) is exactly
+     this 100px, not 100 + extra padding on top of it.
+     260px max-height (visible state) is a generous fixed value --
+     comfortably above the tallest real content (circle 56px + open
+     popover's own 12px margin + 160px max-height = 228px) -- same
+     "hard clip between two fixed numbers" collapse pattern used for
+     .add-popover below, not the content-based grid-rows trick that's
+     proven unreliable elsewhere in this file. */
   .add-wrapper {
     margin-top: 100px;
     margin-bottom: 100px;
+    max-height: 260px;
+    overflow: hidden;
+    transition: max-height 0.25s ease, margin-bottom 0.25s ease;
+  }
+  /* Collapses the whole wrapper (circle + its own margins) down to
+     nothing, so .itemList rises to close the gap -- an explicit,
+     deliberate reversal of the "reserved in layout, never shifts"
+     behavior below. Trade-off, stated plainly: the trigger is no
+     longer clickable at its old screen position while hidden (there's
+     nothing there anymore once the wrapper collapses) -- clicking
+     anywhere still reveals it via the document listener below, same
+     as before, it just now takes a second click to actually use it
+     rather than reveal-and-activate in one. Guarded in JS to never
+     apply while the popover is open, so an open popover can never be
+     stranded with no visible trigger to close it via. */
+  .add-wrapper.idle-hidden {
+    max-height: 0;
+    margin-bottom: 0;
   }
   /* Size scaled by the same ratio the title grew (32px -> 50px =
      x1.5625): 36px -> 56px, and the "+" glyph's own font-size 20px ->
@@ -166,16 +194,16 @@
   }
   .add-trigger:active { transform: scale(0.94); }
   /* Idle auto-hide: fades out after 30s of no clicks anywhere on the
-     page, reappears on the next click. Stays reserved in layout (opacity
-     only, not display:none) so nothing else shifts when it toggles.
-     Deliberately NOT pointer-events:none -- found via live testing that
-     blocking clicks meant a click on the (invisible) trigger's exact
-     spot would reveal it via the document listener below but never
-     reach its own click handler, requiring an unexpected second click
-     to actually open the popover. Leaving it clickable while invisible
-     means one click both reveals it and performs the action, matching
-     what a real click there should always do. */
-  .add-trigger.idle-hidden {
+     page, reappears on the next click. The class toggles on
+     .add-wrapper (see above), which also collapses the layout around
+     it -- so this is just the opacity half of that same state, not an
+     independent toggle. (Previously this deliberately did NOT shift
+     layout, so an invisible trigger stayed clickable in its exact old
+     spot -- one click both revealed and activated it. That trick is
+     gone now that the wrapper collapses on hide: reveal and click are
+     two separate actions again, a deliberate trade-off for the list
+     rising to close the gap, per explicit request.) */
+  .add-wrapper.idle-hidden .add-trigger {
     opacity: 0;
   }
 
@@ -569,6 +597,7 @@
     });
 
     const addTrigger = document.getElementById('addTrigger');
+    const addWrapper = document.querySelector('.add-wrapper');
     const addPopover = document.getElementById('addPopover');
     const nameInput = document.getElementById('newItemName');
     const dateInput = document.getElementById('newItemDate');
@@ -613,15 +642,20 @@
     });
 
     // Separate from the popover's own 60s auto-collapse above: the "+"
-    // trigger itself fades out after 30s of no clicks anywhere on the
-    // page (nothing being used), and reappears the moment anything is
-    // clicked again -- an item, Update, Save, the trigger itself, etc.
-    // Guarded so it never hides while its own popover is open (that would
-    // strand an open popover with no trigger to close it via).
+    // trigger (and the space it occupies) collapses after 30s of no
+    // clicks anywhere on the page (nothing being used), and expands
+    // back the moment anything is clicked again -- an item, Update,
+    // Save, the trigger itself, etc. The class toggles on .add-wrapper,
+    // not just the trigger, so the item list rises to close the gap --
+    // see the CSS comment on .add-wrapper.idle-hidden for the specific
+    // trade-off this means (the trigger is no longer clickable at its
+    // old spot while hidden). Guarded so it never hides while its own
+    // popover is open (that would strand an open popover with no
+    // trigger to close it via).
     let hideTriggerTimer = null;
     function hideTriggerNow() {
       clearTimeout(hideTriggerTimer);
-      addTrigger.classList.add('idle-hidden');
+      addWrapper.classList.add('idle-hidden');
     }
     function scheduleTriggerHide() {
       clearTimeout(hideTriggerTimer);
@@ -632,7 +666,7 @@
       }, 30000);
     }
     document.addEventListener('click', () => {
-      addTrigger.classList.remove('idle-hidden');
+      addWrapper.classList.remove('idle-hidden');
       scheduleTriggerHide();
     });
     scheduleTriggerHide();

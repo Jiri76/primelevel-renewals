@@ -38,17 +38,28 @@
     margin: 0 auto;
     padding: 48px 20px 80px;
   }
-  /* Same 32px gap below the heading on both screens now -- there's no
-     sign-out link anymore (removed deliberately: the session already
-     stays signed in indefinitely regardless of any button, and a
-     one-email-per-account model means there's never a reason to switch
-     accounts on the same device), so h1 doesn't need a wrapper to share
-     the measurement with anything else. */
+  /* Base h1 -- unchanged, still what the sign-in screen uses. The app
+     screen (post sign-in) gets its own override right below so this
+     change stays scoped to exactly the one screen it was asked for,
+     not both. */
   h1 {
     color: var(--gold);
     font-weight: 700;
     font-size: 32px;
     margin: 0 0 32px;
+  }
+  /* App-screen-only title: bigger (50px, +18 from the base 32px),
+     centered on the true viewport -- safe here because .container is
+     already page-centered (margin:0 auto), unlike Masterboard's
+     container which had to be de-centered to anchor its tiles left.
+     Sign-in screen's h1 is untouched by this rule. */
+  #appContainer {
+    padding-top: 100px;
+  }
+  #appContainer h1 {
+    font-size: 50px;
+    margin: 0;
+    text-align: center;
   }
 
   /* Sign-in card -- same card language as .add-popover-inner (input-bg
@@ -115,20 +126,32 @@
      language as .item-update-btn (below) -- transparent + white outline
      at rest, full white-fill/navy-text swap on hover -- so the two read
      as genuinely identical, not just similar. */
+  /* margin-top: exact 100px title-to-circle gap (h1's own margin was
+     zeroed out for this screen -- see #appContainer h1 above -- so
+     this is the only thing creating that gap now).
+     margin-bottom: exact 100px circle-to-list gap. Paired with
+     .empty-state's top padding being removed below, so the visible
+     gap to "Nothing tracked yet..." is exactly this 100px, not
+     100 + whatever padding .empty-state used to add on top of it. */
   .add-wrapper {
-    margin-bottom: 32px;
+    margin-top: 100px;
+    margin-bottom: 100px;
   }
+  /* Size scaled by the same ratio the title grew (32px -> 50px =
+     x1.5625): 36px -> 56px, and the "+" glyph's own font-size 20px ->
+     31px to match, staying visually proportional rather than a bigger
+     circle with the same small glyph inside it. */
   .add-trigger {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     border: 0.5px solid var(--white);
     background: transparent;
     color: var(--white);
-    font-size: 20px;
+    font-size: 31px;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
@@ -427,11 +450,15 @@
     transform: scale(0.96);
   }
 
+  /* Top padding removed -- the 100px gap above this text now comes
+     entirely from .add-wrapper's own margin-bottom, so the two don't
+     stack into 140px. Bottom padding (40px) left exactly as it was --
+     that wasn't part of what was asked to change. */
   .empty-state {
     color: var(--placeholder);
     font-size: 15px;
     text-align: center;
-    padding: 40px 0;
+    padding: 0 0 40px;
   }
 </style>
 </head>

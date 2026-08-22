@@ -128,9 +128,9 @@
   /* Clicking the "+" opens the add-popover in normal page flow, right
      underneath -- it pushes the list down rather than floating over it,
      so it never overlaps the first item. Same resting/hover color
-     language as .item-update-btn (below) -- transparent + white outline
-     at rest, full white-fill/navy-text swap on hover -- so the two read
-     as genuinely identical, not just similar. */
+     language as Save/Delete (below) -- transparent + white outline
+     at rest, full white-fill/navy-text swap on hover -- so they all
+     read as genuinely identical, not just similar. */
   /* margin-top: exact 100px title-to-circle gap (h1's own margin was
      zeroed out for this screen -- see #appContainer h1 above -- so
      this is the only thing creating that gap now). margin-top NEVER
@@ -269,6 +269,10 @@
   /* Shared with .edit-panel input below -- genuinely the same color,
      border, radius, font-size and padding in both forms, not just a
      similarly-styled input that happened to look close. */
+  /* font-size matches Save/Delete's own 15px (was 13px) -- with the
+     same 6px vertical padding both already shared, matching font-size
+     is what makes the input and button boxes come out the same total
+     height, confirmed by direct measurement rather than assumed. */
   .add-popover input,
   .edit-panel input {
     background: var(--navy);
@@ -276,7 +280,7 @@
     border-radius: 6px;
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
-    font-size: 13px;
+    font-size: 15px;
     padding: 6px 8px;
     outline: none;
   }
@@ -310,7 +314,7 @@
   .date-error.visible {
     display: block;
   }
-  /* Now genuinely identical to .item-update-btn / .edit-save-btn --
+  /* Now genuinely identical to .edit-save-btn / .edit-delete-btn --
      same 90x33 box (widened from 72x30 alongside the 13px->15px font
      bump -- 72px left "Update"/"Delete" text 1px from the border on
      one side, 13px on the other; 90px gives a genuinely symmetric
@@ -359,25 +363,20 @@
     border: 0.5px solid var(--border);
     background: var(--input-bg);
     margin-bottom: 15px;
+    cursor: pointer;
     transition: border-color 0.15s ease;
   }
-  /* Hovering the row -- anywhere in it, including directly over its Update
-     button -- frames all four sides in white (same thin 1px thickness,
-     plain border-color swap, no box-shadow). Driven by a JS-toggled class
-     (see mouseenter/mouseleave below), not CSS :hover/:has(), since that
-     didn't reliably stay lit while the cursor was over the button itself. */
+  /* Hovering the row frames all four sides in white (same thin 1px
+     thickness, plain border-color swap, no box-shadow) -- the only
+     affordance now that there's no separate "Update" button; the whole
+     row itself opens edit mode on click (see the JS below). Driven by
+     a JS-toggled class (mouseenter/mouseleave), not CSS :hover, kept
+     from when a child button needed the highlight to survive being
+     hovered directly -- no longer strictly necessary now that the row
+     has no interactive children in its normal view, but harmless to
+     leave as-is. */
   .item.row-hovered {
     border-color: var(--white);
-  }
-  /* Update only exists in the layout while the row is hovered -- not
-     just faded (opacity would still reserve its 72px + gap, leaving
-     the countdown short of the true right edge). display:none removes
-     it from the flex row entirely, including its share of .item's own
-     `gap`, so justify-content:space-between naturally pushes the
-     countdown flush against the row's right padding on its own --
-     no extra positioning logic needed for the "shifts right" behavior. */
-  .item.row-hovered .item-update-btn {
-    display: block;
   }
   .item-name {
     color: var(--white);
@@ -396,49 +395,7 @@
     flex: 0 0 auto;
     white-space: nowrap;
   }
-  /* Single action on the collapsed row -- white outline + white text,
-     the same secondary-button language used everywhere else on the page.
-     Hidden entirely until the row is hovered (see .item.row-hovered
-     .item-update-btn above), then starts dimmed and brightens further
-     on direct hover -- so a long list doesn't read as a wall of bold
-     buttons, and the countdown gets the full row width to itself the
-     rest of the time. */
-  .item-update-btn {
-    display: none;
-    flex: 0 0 auto;
-    background: transparent;
-    border: 0.5px solid var(--white);
-    color: var(--white);
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    border-radius: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
-    opacity: 0.45;
-    transition: opacity 0.15s ease, transform 0.1s ease;
-    /* Same fixed width as Save/Delete (90px, widened alongside the
-       13px->15px font bump -- see .add-save-btn's comment for the
-       measurement that produced this exact number). */
-    width: 90px;
-    text-align: center;
-  }
-  /* The button only inverts on its own direct hover -- not just from
-     being anywhere in the row -- separate from the row's own white
-     highlight (.row-hovered above), which stays lit the whole time
-     regardless of whether the button itself is also being hovered.
-     Full color swap (white fill, navy text) rather than just brightening
-     the same outline style, for a much stronger, unmistakable highlight. */
-  .item-update-btn:hover {
-    opacity: 1;
-    background: var(--white);
-    color: var(--navy);
-  }
-  .item-update-btn:active {
-    transform: scale(0.96);
-  }
-
-  /* Edit panel -- opens in place of the countdown once "Update" is tapped.
+  /* Edit panel -- opens in place of the countdown once the row is clicked.
      Two groups (fields, actions) with the exact same internal gap, pushed
      to opposite ends -- so Save/Delete land flush against the row's right
      edge, same as the Update button does on every other row, rather than
@@ -486,11 +443,10 @@
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
   }
-  /* Save and Delete now match .item-update-btn exactly -- same resting
-     style (transparent, white outline, dimmed) and same hover swap
-     (white fill, navy text) -- not the earlier gold-fill look. Still
-     visually identical to EACH OTHER (only the label differs), just
-     matching Update's language instead of their own separate one. */
+  /* Save and Delete match the add-form's own Save button exactly --
+     same resting style (transparent, white outline, dimmed) and same
+     hover swap (white fill, navy text). Still visually identical to
+     EACH OTHER (only the label differs). */
   .edit-save-btn,
   .edit-delete-btn {
     background: transparent;
@@ -864,7 +820,7 @@
       // mouseenter/mouseleave (unlike mouseover/mouseout) only fire once
       // for the whole row, not again for every child crossed -- so this
       // reliably stays "hovered" the entire time the cursor is anywhere
-      // inside the row, including directly over the Update button.
+      // inside the row.
       row.addEventListener('mouseenter', () => row.classList.add('row-hovered'));
       row.addEventListener('mouseleave', () => row.classList.remove('row-hovered'));
 
@@ -876,20 +832,27 @@
       countdown.className = 'item-countdown';
       countdown.textContent = countdownText(days);
 
-      const updateBtn = document.createElement('button');
-      updateBtn.className = 'item-update-btn';
-      updateBtn.textContent = 'Update';
-      updateBtn.addEventListener('click', () => showEditPanel(row, item, name, countdown, updateBtn));
+      // The whole row is the trigger now -- no separate "Update" button.
+      // Removes its own listener the instant it fires (before
+      // showEditPanel does anything else), so a click that bubbles up
+      // from inside the newly-built edit panel (an input, Save, Delete)
+      // can never re-open edit mode on a row that's already in it.
+      function openEdit() {
+        row.removeEventListener('click', openEdit);
+        showEditPanel(row, item, name, countdown);
+      }
+      row.addEventListener('click', openEdit);
 
-      row.append(name, countdown, updateBtn);
+      row.append(name, countdown);
       return row;
     }
 
     // Single edit surface for a row -- name, date, Save, and Delete all
-    // together, opened by the one "Update" button. Delete here is a direct
-    // action (no separate arm/confirm step): getting here already required
-    // the deliberate tap on "Update" first, so that's the real gate.
-    function showEditPanel(row, item, name, countdown, updateBtn) {
+    // together, opened by clicking anywhere on the row. Delete here is a
+    // direct action (no separate arm/confirm step): getting here already
+    // required the deliberate click to enter edit mode, so that's the
+    // real gate.
+    function showEditPanel(row, item, name, countdown) {
       const panel = document.createElement('div');
       panel.className = 'edit-panel';
 
@@ -988,7 +951,6 @@
       panel.append(editRow, errorEl);
       row.replaceChild(panel, countdown);
       name.remove();
-      updateBtn.remove();
     }
 
     addBtn.addEventListener('click', async () => {

@@ -405,8 +405,13 @@
   /* 130px, not the earlier 110px -- measured live: the "DD/MM/YYYY"
      placeholder needs ~121px (text + padding + border) at this font,
      110px clipped the final "Y". 130px gives real breathing room, not
-     just the bare minimum. */
-  #newItemDate { flex: 0 0 auto; width: 130px; }
+     just the bare minimum. text-align:center (not the default left)
+     because the extra ~8.6px of that breathing room would otherwise
+     sit entirely after the "Y" -- left-aligned text plus equal CSS
+     padding does NOT produce equal visual gaps once the field is
+     wider than the text itself. Centering splits it evenly instead,
+     same pattern already used on #authEmail for the same reason. */
+  #newItemDate { flex: 0 0 auto; width: 130px; text-align: center; }
   /* Hidden by default -- an empty error div still reserves its own
      line-height plus margin-top even with no text in it, which was
      silently making the bottom padding look bigger than the top (23px
@@ -555,7 +560,7 @@
     align-items: center;
     gap: 8px;
   }
-  #editDate { flex: 0 0 auto; width: 130px; }
+  #editDate { flex: 0 0 auto; width: 130px; text-align: center; }
   /* border-width: full 1px, not the 0.5px used elsewhere -- same
      reasoning as .add-save-btn above: this button sits directly next
      to the 1px-bordered Name/Date inputs and needs to match their

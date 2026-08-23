@@ -110,15 +110,18 @@
     align-items: center;
     width: 100%;
   }
-  /* font-size 15px (down from 18px) -- explicit request, smaller than
-     before and that's intended. Now the reference width the button
-     (below) matches -- not the email field, which keeps its own
-     independent width this round (per the drawing: the email box is
-     visibly wider than the aligned lead-text/button edges, not tied
-     to them like the previous round). */
+  /* font-weight:700 + opacity:0.45 -- explicit request to match
+     "Send magic link"'s own look exactly (same bold weight, same
+     dimmed/grayish appearance) rather than plain solid white. Using
+     opacity (not a hardcoded gray color) guarantees a pixel-identical
+     visual match to the button's own dimming technique, not an
+     eyeballed approximation. font-size 15px matches the button's own
+     size too. */
   .auth-lead {
     color: var(--white);
     font-size: 15px;
+    font-weight: 700;
+    opacity: 0.45;
     text-align: center;
     margin: 0 0 25px;
   }
@@ -140,12 +143,11 @@
     margin-bottom: 50px;
   }
   #authEmail::placeholder { color: var(--placeholder); }
-  /* font-size 15px (down from 18px), matching .auth-lead exactly, "as
-     it was" per the request. width: matched exactly to .auth-lead's
-     own real rendered text width at 15px (measured live, not guessed)
-     -- explicit instruction: wherever the lead text starts/ends, the
-     button starts/ends too, same left/right edges. Padding kept at
-     14px 0 (a fixed width now drives the box, not the padding). */
+  /* width: 283px -- explicit correction, now matched to #authEmail's
+     own width instead of .auth-lead's (an earlier round asked for the
+     lead-text match; superseded by "the button copies the size of the
+     email box exactly, no change here"). font-size 15px, matching
+     .auth-lead's own bold+dimmed look. */
   .auth-btn {
     align-self: center;
     background: transparent;
@@ -155,7 +157,7 @@
     font-weight: 700;
     font-size: 15px;
     border-radius: 6px;
-    width: 212px;
+    width: 283px;
     padding: 14px 0;
     text-align: center;
     cursor: pointer;
@@ -168,6 +170,19 @@
     color: var(--navy);
   }
   .auth-btn:active { transform: scale(0.96); }
+  /* margin-top: 50px -- explicit request: when this shows, the gap
+     from the button to it should match the top-of-card-to-lead-text
+     gap (also 50px). Scoped to #authError specifically, not the
+     shared .date-error rule below (line ~370) -- that rule is also
+     used by the add-form and edit-panel's own error messages
+     elsewhere in this app, which were never asked to change and stay
+     at their original 6px. Color intentionally left red (var(--red))
+     -- that's the established validation-error color used everywhere
+     else in this app; "gray, like Send magic link" in the request was
+     read as describing the lead text above, not this message. */
+  #authError {
+    margin-top: 50px;
+  }
   /* display:none by default, same established pattern as .date-error
      just above -- an empty div with margin-top still reserves that
      margin's worth of space even with zero text in it (this exact

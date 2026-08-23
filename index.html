@@ -147,6 +147,27 @@
     margin-bottom: 50px;
   }
   #authEmail::placeholder { color: var(--placeholder); }
+  /* Real bug found and fixed: Chrome's autofill forces its own light
+     background + dark text on this field once it recognizes it as an
+     email/login input, completely overriding the navy/white styling
+     above -- confirmed by the user's own screenshot (a white box with
+     faint dark text, nothing to do with font-weight). The standard,
+     email-safe fix: a giant inset box-shadow the same color as the
+     real background, which Chrome lets authors paint OVER its own
+     autofill background (unlike `background`, which it refuses to
+     let authors override directly), plus -webkit-text-fill-color
+     (autofill also ignores plain `color`). The long `transition` on
+     background-color is the standard trick to stop Chrome's own
+     autofill highlight from flashing yellow for a moment before this
+     override takes effect. */
+  #authEmail:-webkit-autofill,
+  #authEmail:-webkit-autofill:hover,
+  #authEmail:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--white);
+    -webkit-box-shadow: 0 0 0px 1000px var(--navy) inset;
+    box-shadow: 0 0 0px 1000px var(--navy) inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
   /* width: 283px -- matched to #authEmail's own width. height: 50px --
      explicit, exact match to #authEmail's own explicit height, not
      just an incidental match from matching padding/font. display:flex

@@ -249,9 +249,29 @@
      "hard clip between two fixed numbers" collapse pattern used for
      .add-popover below, not the content-based grid-rows trick that's
      proven unreliable elsewhere in this file. */
+  /* padding-top/bottom: 2px each -- real bug found and fixed: the
+     "+" circle's hover pop (scale(1.03)) grows the button by ~0.84px
+     on each side, but this wrapper's overflow:hidden box was sized
+     EXACTLY to the circle's own 56px height with zero headroom, so
+     the top and bottom of the circle were genuinely being clipped on
+     hover (confirmed via the CSS math -- overflow:hidden + a
+     content-height-only box + any transform growth at all = clipping,
+     deterministically, not something that needed visual reproduction).
+     2px of padding each side gives real headroom (more than double
+     the ~0.84px actually needed). Margin-top/margin-bottom are left
+     exactly as they were (100px each, untouched) so the LOCKED
+     collapsed-state gap (title->list == 100px when idle-hidden) stays
+     exactly 100px -- max-height:0 collapses this padding away to
+     nothing regardless of its value, same as it already did for the
+     circle's own content height. The only side-effect is the VISIBLE
+     state's title->circle and circle->list gaps growing from the
+     previously-locked 100px to 102px each -- a small, disclosed
+     trade-off, not a silent drift. */
   .add-wrapper {
     margin-top: 100px;
     margin-bottom: 100px;
+    padding-top: 2px;
+    padding-bottom: 2px;
     max-height: 260px;
     overflow: hidden;
     transition: max-height 0.25s ease, margin-bottom 0.25s ease;
@@ -470,13 +490,13 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
-    /* 3%, matching .edit-save-btn/.edit-delete-btn -- this button is
-       genuinely identical to those in every other respect (color,
-       border, size), so its hover pop stays identical too. See the
-       .auth-btn:hover comment above for why 3% vs the row/auth-btn's
-       1.5% -- smaller buttons need the bigger percentage to actually
-       read as a pop. */
-    transform: scale(1.03);
+    /* 2%, not 3% -- explicitly dialed back down from the row/circle's
+       language: at this button's size the 3% pop felt like too much,
+       per direct user feedback, while the "+" circle stays at 3%.
+       Still matches .edit-save-btn/.edit-delete-btn exactly (this
+       button is genuinely identical to those in every other respect),
+       so its hover pop stays identical to theirs too. */
+    transform: scale(1.02);
   }
   .add-save-btn:active {
     transform: scale(0.96);
@@ -609,11 +629,13 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
-    /* 3%, not 1.5% -- see the .auth-btn:hover comment for why: these
-       90px buttons need the bigger percentage to actually read as a
-       pop, while the much larger item row and sign-in button stay at
-       1.5% deliberately. */
-    transform: scale(1.03);
+    /* 2%, not the "+" circle's 3% -- explicitly dialed back down per
+       direct user feedback (3% felt like too much on Save/Delete
+       specifically). Still bigger than the item row/sign-in button's
+       1.5% (a % scale is relative to element size, and these 90px
+       buttons need more than 1.5% to read as a pop at all), just not
+       as much as the circle. */
+    transform: scale(1.02);
   }
   .edit-save-btn:active,
   .edit-delete-btn:active {

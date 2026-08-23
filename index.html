@@ -104,6 +104,29 @@
     width: 500px;
     margin: 0 auto;
   }
+  /* Confirmation state, after a magic link is successfully sent: the
+     form (lead text, email input, button) and any error line are
+     hidden entirely, replaced by just the confirmation message,
+     centered in the middle of the SAME box -- not a smaller box that
+     jumps/shrinks. 279px is the real, measured height of the normal
+     resting-state card (50 padding + lead + 8 + email(50) + 50 +
+     button(50) + 50 padding), confirmed live, not guessed -- min-height
+     here locks the confirmation state to that same size so nothing
+     visibly resizes when the card's content swaps. justify-content:
+     center then centers the sole remaining child vertically within
+     that locked height (align-items:center above already centers it
+     horizontally). Per explicit user request: no way back to the form
+     from here (no "send a different link" option) -- this screen is
+     only ever reached by following a link from elsewhere, ordinary
+     users never revisit or need to retype anything here. */
+  .auth-card.sent {
+    min-height: 279px;
+    justify-content: center;
+  }
+  .auth-card.sent .auth-card-main,
+  .auth-card.sent #authError {
+    display: none;
+  }
   .auth-card-main {
     display: flex;
     flex-direction: column;
@@ -207,13 +230,24 @@
      scale is relative to the element's own size, so the same
      percentage reads very differently on a 660px row vs a 90px
      button). See each element's own hover rule for its value. */
-  .auth-btn:hover {
+  .auth-btn:hover:not(:disabled) {
     opacity: 1;
     background: var(--white);
     color: var(--navy);
     transform: scale(1.015);
   }
   .auth-btn:active { transform: scale(0.96); }
+  /* Disabled during the "Sending..." state (set in JS the instant the
+     button is clicked, before waiting on the network) -- deliberately
+     NO new visual style here. It simply stays at its normal resting
+     0.45 opacity (the :not(:disabled) guard above stops hover from
+     brightening it while disabled) -- reusing the button's existing
+     dim look rather than inventing a separate "loading" style, per
+     explicit request. cursor:not-allowed is the only addition, a
+     standard signal that clicking won't do anything right now. */
+  .auth-btn:disabled {
+    cursor: not-allowed;
+  }
   /* margin-top: 8px (was 50px) -- explicit correction: this should sit
      "attached" to the button, minimal gap, the same way .auth-lead now
      sits attached to the email field above. The real 50px landmark is
@@ -232,15 +266,23 @@
   /* display:none by default, same established pattern as .date-error
      just above -- an empty div with margin-top still reserves that
      margin's worth of space even with zero text in it (this exact
-     project has hit this bug before; caught it again live here: the
-     button-to-bottom gap measured 57px instead of the intended 40px,
-     off by almost exactly this div's own margin-top). Only takes up
-     space once there's an actual message to show. */
+     project has hit this bug before). Restyled from a small 13px green
+     addendum line into the full confirmation screen's sole content,
+     per explicit request: Montserrat bold 20px, centered -- same
+     centering principle as #authEmail's own text-align:center, not a
+     coincidence. White, not green -- this is now the PRIMARY message
+     of an entire screen state, not a small secondary addition next to
+     other content, so it takes the same prominent white the lead text
+     uses rather than a small success-color accent. No margin-top
+     needed any more either -- .auth-card.sent's flex centering (above)
+     positions it, not a fixed offset from content above it. */
   .auth-sent {
     display: none;
-    color: var(--green);
-    font-size: 13px;
-    margin-top: 16px;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    text-align: center;
   }
   .auth-sent.visible {
     display: block;
@@ -696,7 +738,7 @@
        flash of the sign-in card for someone who's already signed in. -->
   <div class="container" id="authContainer" style="display: none;">
     <h1>Renewals</h1>
-    <div class="auth-card">
+    <div class="auth-card" id="authCard">
       <div class="auth-card-main">
         <p class="auth-lead">Sign in to see your renewals.</p>
         <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" />
@@ -744,6 +786,7 @@
     // show; the real security boundary is the RLS policy, not this JS.
     const authContainer = document.getElementById('authContainer');
     const appContainer = document.getElementById('appContainer');
+    const authCard = document.getElementById('authCard');
     const authEmail = document.getElementById('authEmail');
     const authSendBtn = document.getElementById('authSendBtn');
     const authError = document.getElementById('authError');
@@ -770,17 +813,40 @@
         setError(authError, 'Please enter a valid email.');
         return;
       }
+      // Instant feedback the moment the button is pressed, before the
+      // network round-trip even starts -- previously the button just
+      // sat there identically for however long the request took,
+      // which read as "did that even register?" Reuses the button's
+      // existing dim resting look (see .auth-btn:disabled above) rather
+      // than a new style, per explicit request.
+      authSendBtn.disabled = true;
+      authSendBtn.textContent = 'Sending...';
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: { emailRedirectTo: window.location.origin + window.location.pathname },
       });
       if (!error) {
-        authSentMsg.textContent = `Check ${email} for the link.`;
+        // Swap the card's content entirely rather than appending a
+        // small line to the still-visible form, per explicit request --
+        // .auth-card.sent hides the form/error and centers this message
+        // in the same-sized box (see its CSS comment for the measured
+        // height that keeps this from visibly resizing). Generic
+        // "Check your email." rather than echoing the address back --
+        // this screen is only ever reached right after typing that
+        // same address, so repeating it back added nothing.
+        authCard.classList.add('sent');
+        authSentMsg.textContent = 'Check your email.';
         authSentMsg.classList.add('visible');
-      } else if (error.status === 429) {
-        setError(authError, 'Please wait a minute before requesting another link.');
       } else {
-        setError(authError, 'Could not send the link — please check your connection and try again.');
+        // Only reached on failure -- restore the button so the user can
+        // actually retry, since it was left disabled/"Sending..." above.
+        authSendBtn.disabled = false;
+        authSendBtn.textContent = 'Send magic link';
+        if (error.status === 429) {
+          setError(authError, 'Please wait a minute before requesting another link.');
+        } else {
+          setError(authError, 'Could not send the link — please check your connection and try again.');
+        }
       }
     });
 

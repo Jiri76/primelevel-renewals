@@ -584,10 +584,25 @@
     align-items: center;
     justify-content: space-between;
   }
+  /* gap: 7px, not the matching 8px used everywhere else (.edit-actions,
+     .add-fields) -- a deliberate, small optical compensation, not a
+     real spacing bug. The Name<->Date gap here uses the input fields'
+     own low-contrast dark border (blends into the background), while
+     the Save<->Delete gap next to it uses the buttons' bright white
+     border -- same literal 8px in both, confirmed by direct
+     measurement, but the high-contrast white border visually "eats
+     into" its gap more, making it read as tighter. Narrowing this gap
+     by 1px is a targeted nudge to compensate for that specific
+     perceptual difference, per explicit user request -- not derived
+     from any formula (optical contrast effects don't have one), just
+     a minimal, easily-reversible try. .add-fields (the add-form's own
+     Name<->Date gap) is untouched at 8px -- it never faces this same
+     issue since the add-form only has one button, no adjacent white
+     border to compare against. */
   .edit-fields {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
   }
   .edit-actions {
     display: flex;

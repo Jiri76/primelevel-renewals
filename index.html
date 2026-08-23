@@ -88,14 +88,22 @@
     margin: 0 0 100px;
     text-align: center;
   }
-  /* Sign-in card -- 500x600px. padding: 50px top, 25px left/right
-     (bumped from 24px -- explicitly deferred to Claude's judgment;
-     25 fits the round-number rhythm of the other values here better
-     than 24 did), 50px bottom -- all four gaps now exact, explicit
-     values per spec, not auto-distributed: 50 (top) -> lead -> 25 ->
-     email -> 50 -> button -> 50 (bottom). Replaces the earlier
-     justify-content:space-between "equal spread" approach entirely --
-     superseded by these specific numbers. */
+  /* Sign-in card -- width fixed at 500px, height now auto (was a fixed
+     600px). Real conflict found and resolved with the user: a fixed
+     600px height plus the exact stated gaps (50 top / 25 lead-email /
+     50 email-button / 50 bottom) don't reconcile -- the compact real
+     content only adds up to ~257px total, leaving 343px of unexplained
+     empty space at the bottom instead of the intended 50px. Given the
+     choice, explicitly chose to keep every gap exact and let the
+     card's real height be whatever that naturally totals, rather than
+     force a fixed height or stretch the gaps to fill it. padding:
+     50px top, 25px left/right (bumped from 24px -- explicitly deferred
+     to Claude's judgment; 25 fits the round-number rhythm here better),
+     50px bottom -- all four gaps exact, explicit values, not
+     auto-distributed: 50 (top) -> lead -> 25 -> email -> 50 -> button
+     -> 50 (bottom). Replaces the earlier justify-content:space-between
+     "equal spread" approach entirely -- superseded by these specific
+     numbers. */
   .auth-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
@@ -105,7 +113,6 @@
     flex-direction: column;
     align-items: center;
     width: 500px;
-    height: 600px;
     margin: 0 auto;
   }
   .auth-card-main {

@@ -172,10 +172,22 @@
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
   }
+  /* transform: scale(1.03) -- the standard, subtle "lift" hover effect
+     used on countless real product buttons (Stripe, Linear, etc.): a
+     small 3% scale-up, not a dramatic bounce, that reads as "natural"
+     rather than gimmicky. Pairs with the button's existing :active
+     scale(0.96) press-down below -- hover lifts slightly out, pressing
+     pushes slightly in, a coherent pair rather than a one-off effect.
+     Animates through the same transition:transform 0.1s ease already
+     on the base .auth-btn rule, so this needed no new transition
+     property. Scoped to this button only for now -- not applied to
+     other buttons elsewhere in the app, which don't currently have
+     this effect; ask if you'd like it made consistent everywhere. */
   .auth-btn:hover {
     opacity: 1;
     background: var(--white);
     color: var(--navy);
+    transform: scale(1.03);
   }
   .auth-btn:active { transform: scale(0.96); }
   /* margin-top: 8px (was 50px) -- explicit correction: this should sit

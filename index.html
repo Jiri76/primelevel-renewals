@@ -117,13 +117,18 @@
      visual match to the button's own dimming technique, not an
      eyeballed approximation. font-size 15px matches the button's own
      size too. */
+  /* margin-bottom: 8px (was 25px) -- "sits on the box," a minimal
+     attached gap, not the earlier fixed 25px slot. The three real
+     structural landmarks (top->lead 50px, email->button 50px,
+     button->card-bottom 50px) are untouched -- only this one and
+     #authError's own gap (below) became minimal. */
   .auth-lead {
     color: var(--white);
     font-size: 15px;
     font-weight: 700;
     opacity: 0.45;
     text-align: center;
-    margin: 0 0 25px;
+    margin: 0 0 8px;
   }
   /* font-size back to 20px (was 18px) -- explicit "still twenty."
      width: kept at 283px, the same value already established for a
@@ -175,18 +180,20 @@
     color: var(--navy);
   }
   .auth-btn:active { transform: scale(0.96); }
-  /* margin-top: 50px -- explicit request: when this shows, the gap
-     from the button to it should match the top-of-card-to-lead-text
-     gap (also 50px). Scoped to #authError specifically, not the
-     shared .date-error rule below (line ~370) -- that rule is also
-     used by the add-form and edit-panel's own error messages
-     elsewhere in this app, which were never asked to change and stay
-     at their original 6px. Color intentionally left red (var(--red))
-     -- that's the established validation-error color used everywhere
-     else in this app; "gray, like Send magic link" in the request was
-     read as describing the lead text above, not this message. */
+  /* margin-top: 8px (was 50px) -- explicit correction: this should sit
+     "attached" to the button, minimal gap, the same way .auth-lead now
+     sits attached to the email field above. The real 50px landmark is
+     the card's own padding-bottom, measured from the button's bottom
+     edge in the normal (no error showing) case -- untouched. Scoped to
+     #authError specifically, not the shared .date-error rule below
+     (line ~370) -- that rule is also used by the add-form and
+     edit-panel's own error messages elsewhere in this app, which were
+     never asked to change and stay at their original 6px. Color
+     intentionally left red (var(--red)) -- confirmed explicitly not to
+     change; that's the established validation-error color everywhere
+     else in this app. */
   #authError {
-    margin-top: 50px;
+    margin-top: 8px;
   }
   /* display:none by default, same established pattern as .date-error
      just above -- an empty div with margin-top still reserves that

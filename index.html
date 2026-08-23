@@ -88,24 +88,19 @@
     margin: 0 0 100px;
     text-align: center;
   }
-  /* Sign-in card -- 500x600px (width/height per explicit request).
-     padding: 50px explicit top, 24px left/right unchanged, 40px bottom.
-     Real bug found and fixed: the two status divs below (#authError,
-     #authSentMsg) are also children of this flex column -- with
-     justify-content:space-between applied directly here, they silently
-     became a 4th "slot" in the distribution, stealing space meant for
-     the 3 real design elements (measured live: a 173px gap after the
-     button instead of the intended even spacing). Fixed by moving
-     justify-content:space-between onto .auth-card-main (below) -- a
-     wrapper around just the 3 elements that were actually asked to be
-     spread evenly -- so the status messages sit quietly underneath
-     without disturbing that rhythm, gracefully shrinking it slightly
-     on the rare occasion one is actually showing. */
+  /* Sign-in card -- 500x600px. padding: 50px top, 25px left/right
+     (bumped from 24px -- explicitly deferred to Claude's judgment;
+     25 fits the round-number rhythm of the other values here better
+     than 24 did), 50px bottom -- all four gaps now exact, explicit
+     values per spec, not auto-distributed: 50 (top) -> lead -> 25 ->
+     email -> 50 -> button -> 50 (bottom). Replaces the earlier
+     justify-content:space-between "equal spread" approach entirely --
+     superseded by these specific numbers. */
   .auth-card {
     background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 50px 24px 40px;
+    padding: 50px 25px 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -117,27 +112,26 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    flex: 1;
     width: 100%;
   }
   .auth-lead {
     color: var(--white);
     font-size: 20px;
     text-align: center;
-    margin: 0;
+    margin: 0 0 25px;
   }
-  /* width: a deliberate size, not shrink-to-fit or full-bleed -- 380px
-     reads as a clean, intentional field within the 452px available
-     (500px card - 24px padding each side), not cramped or edge-to-edge.
-     padding bumped 8px 10px -> 16px 18px to match the bigger 20px font
-     (same reasoning as the button-height fix earlier this session --
-     an input's box should grow with its font, not stay pinched around
+  /* width: matched exactly to .auth-lead's own real rendered text
+     width (measured live, not guessed) -- explicit request that the
+     email field and button copy the lead text's natural width exactly,
+     so all three share the same left/right edges as a column. padding
+     bumped 8px 10px -> 16px 18px to match the bigger 20px font (same
+     reasoning as the button-height fix earlier this session -- a
+     field's box should grow with its font, not stay pinched around
      bigger text), and border-radius bumped 6px -> 8px -- at this much
-     larger size the original 6px (right for a compact 13px-font field)
-     started to look slightly undersized for the box; 8px keeps the
-     same "soft, not pill-shaped" language as the 10px card/6-8px
-     button family around it, just scaled to match. */
+     larger size the original 6px (right for a compact 13px field)
+     started to look undersized for the box; 8px keeps the same "soft,
+     not pill-shaped" language as the 10px card/6-8px button family
+     around it, just scaled to match. */
   #authEmail {
     background: var(--navy);
     border: 1px solid var(--border);
@@ -149,19 +143,19 @@
     width: 380px;
     padding: 16px 18px;
     outline: none;
+    margin-bottom: 50px;
   }
   #authEmail::placeholder { color: var(--placeholder); }
   /* align-self:center (was flex-start) -- centered as an object like
-     the other two now, matching the explicit "all three centered" ask.
-     Font-size intentionally left at 13px -- only the lead text and
-     email were asked to move to 20px; a 20px button would visually
-     overpower Save/Delete/Update's own 13-15px language used
-     everywhere else in this app, which this button already otherwise
-     matches -- keeping it grounds the button as "the same kind of
-     button," not a jarring one-off. Padding widened 8px 16px -> 14px
-     40px so it reads as a real primary action -- the single most
-     important thing on this screen -- rather than a small utility
-     button lost in a much bigger, more spacious card. */
+     the other two, matching the explicit "all three centered" ask.
+     Font-size 13px -> 15px -- explicit correction: matches Save/
+     Delete/Update's own 15px (bumped earlier this session), not the
+     button's own original 13px as first assumed. Width matched to
+     .auth-lead's real measured width, same as the email field above.
+     Padding widened 8px 16px -> 14px 40px so it reads as a real
+     primary action -- the single most important thing on this screen
+     -- rather than a small utility button lost in a much bigger, more
+     spacious card. */
   .auth-btn {
     align-self: center;
     background: transparent;
@@ -169,9 +163,11 @@
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 15px;
     border-radius: 6px;
-    padding: 14px 40px;
+    width: 380px;
+    padding: 14px 0;
+    text-align: center;
     cursor: pointer;
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;

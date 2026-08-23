@@ -138,18 +138,23 @@
     font-size: 20px;
     text-align: center;
     width: 283px;
-    padding: 16px 18px;
+    height: 50px;
+    padding: 0 18px;
     outline: none;
     margin-bottom: 50px;
   }
   #authEmail::placeholder { color: var(--placeholder); }
-  /* width: 283px -- explicit correction, now matched to #authEmail's
-     own width instead of .auth-lead's (an earlier round asked for the
-     lead-text match; superseded by "the button copies the size of the
-     email box exactly, no change here"). font-size 15px, matching
-     .auth-lead's own bold+dimmed look. */
+  /* width: 283px -- matched to #authEmail's own width. height: 50px --
+     explicit, exact match to #authEmail's own explicit height, not
+     just an incidental match from matching padding/font. display:flex
+     centers the text vertically within that fixed height (a plain
+     button's default vertical centering isn't reliable enough at an
+     exact pixel height -- explicit centering removes any doubt). */
   .auth-btn {
     align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     border: 0.5px solid var(--white);
     color: var(--white);
@@ -158,7 +163,7 @@
     font-size: 15px;
     border-radius: 6px;
     width: 283px;
-    padding: 18.5px 0;
+    height: 50px;
     text-align: center;
     cursor: pointer;
     opacity: 0.45;

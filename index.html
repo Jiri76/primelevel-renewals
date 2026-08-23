@@ -120,22 +120,20 @@
     text-align: center;
     margin: 0 0 25px;
   }
-  /* width: matched exactly to .auth-lead's own real rendered text
-     width (measured live, not guessed) -- explicit request that the
-     email field and button copy the lead text's natural width exactly,
-     so all three share the same left/right edges as a column. padding
-     bumped 8px 10px -> 16px 18px to match the bigger 20px font (same
-     reasoning as the button-height fix earlier this session -- a
+  /* width: 283px, matched exactly to .auth-lead's own real rendered
+     text width (measured live, not guessed) -- explicit request that
+     the email field and button copy the lead text's natural width
+     exactly, so all three share the same left/right edges as a column.
+     padding bumped 8px 10px -> 16px 18px to match the bigger 20px font
+     (same reasoning as the button-height fix earlier this session -- a
      field's box should grow with its font, not stay pinched around
-     bigger text), and border-radius bumped 6px -> 8px -- at this much
-     larger size the original 6px (right for a compact 13px field)
-     started to look undersized for the box; 8px keeps the same "soft,
-     not pill-shaped" language as the 10px card/6-8px button family
-     around it, just scaled to match. */
+     bigger text). border-radius: 10px -- explicit correction, matched
+     to the item row's own established 10px radius (not a scaled-up
+     guess -- the same literal shared value used everywhere else). */
   #authEmail {
     background: var(--navy);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--white);
     font-family: 'Montserrat', sans-serif;
     font-size: 20px;

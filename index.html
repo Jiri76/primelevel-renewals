@@ -110,13 +110,12 @@
     align-items: center;
     width: 100%;
   }
-  /* font-weight:700 + opacity:0.45 -- explicit request to match
-     "Send magic link"'s own look exactly (same bold weight, same
-     dimmed/grayish appearance) rather than plain solid white. Using
-     opacity (not a hardcoded gray color) guarantees a pixel-identical
-     visual match to the button's own dimming technique, not an
-     eyeballed approximation. font-size 15px matches the button's own
-     size too. */
+  /* font-weight:700 + font-size:15px still match "Send magic link"
+     exactly (typography stays matched). opacity removed (was 0.45,
+     copying the button's dimmed-at-rest look) -- explicit correction:
+     that dimming is meant to signal an interactive element, not a
+     static label, so this is now the standard full-opacity white text
+     color used everywhere else, not artificially grayed. */
   /* margin-bottom: 8px (was 25px) -- "sits on the box," a minimal
      attached gap, not the earlier fixed 25px slot. The three real
      structural landmarks (top->lead 50px, email->button 50px,
@@ -126,7 +125,6 @@
     color: var(--white);
     font-size: 15px;
     font-weight: 700;
-    opacity: 0.45;
     text-align: center;
     margin: 0 0 8px;
   }

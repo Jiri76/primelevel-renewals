@@ -118,16 +118,18 @@
     text-align: center;
     margin: 0 0 50px;
   }
-  /* width: 283px, matched exactly to .auth-lead's own real rendered
-     text width (measured live, not guessed) -- explicit request that
-     the email field and button copy the lead text's natural width
-     exactly, so all three share the same left/right edges as a column.
-     padding bumped 8px 10px -> 16px 18px to match the bigger 20px font
-     (same reasoning as the button-height fix earlier this session -- a
-     field's box should grow with its font, not stay pinched around
-     bigger text). border-radius: 10px -- explicit correction, matched
-     to the item row's own established 10px radius (not a scaled-up
-     guess -- the same literal shared value used everywhere else). */
+  /* width: 255px, matched exactly to .auth-lead's own real rendered
+     text width at the current 18px font (measured live, not guessed,
+     and re-measured each time the font-size changes -- was 283px at
+     20px) -- explicit request that the email field and button copy the
+     lead text's natural width exactly, so all three share the same
+     left/right edges as a column. padding bumped 8px 10px -> 16px 18px
+     to match the bigger font (same reasoning as the button-height fix
+     earlier this session -- a field's box should grow with its font,
+     not stay pinched around bigger text). border-radius: 10px --
+     explicit correction, matched to the item row's own established
+     10px radius (not a scaled-up guess -- the same literal shared
+     value used everywhere else). */
   #authEmail {
     background: var(--navy);
     border: 1px solid var(--border);
@@ -136,7 +138,7 @@
     font-family: 'Montserrat', sans-serif;
     font-size: 18px;
     text-align: center;
-    width: 283px;
+    width: 255px;
     padding: 16px 18px;
     outline: none;
     margin-bottom: 100px;
@@ -144,15 +146,15 @@
   #authEmail::placeholder { color: var(--placeholder); }
   /* align-self:center (was flex-start) -- centered as an object like
      the other two, matching the explicit "all three centered" ask.
-     Font-size 15px -> 20px -- explicit request to match the lead text
-     and email field exactly, all three now 20px. Width matched to
-     .auth-lead's real measured width, same as the email field above --
-     checked live after the font bump that "Send magic link" still
-     fits inside 283px without wrapping/overflowing, since a bigger
-     font needs more room than the same text did at 15px. Padding
-     widened 8px 16px -> 14px 0 so it reads as a real primary action --
-     the single most important thing on this screen -- rather than a
-     small utility button lost in a much bigger, more spacious card. */
+     Font-size now 18px, matching the lead text and email field
+     exactly, all three the same. Width matched to .auth-lead's real
+     measured width (re-measured after each font-size change, since a
+     smaller/bigger font changes the text's own natural width -- 255px
+     at 18px, was 283px at 20px), checked live that "Send magic link"
+     still fits without wrapping/overflowing. Padding widened 8px 16px
+     -> 14px 0 so it reads as a real primary action -- the single most
+     important thing on this screen -- rather than a small utility
+     button lost in a much bigger, more spacious card. */
   .auth-btn {
     align-self: center;
     background: transparent;
@@ -162,7 +164,7 @@
     font-weight: 700;
     font-size: 18px;
     border-radius: 6px;
-    width: 283px;
+    width: 255px;
     padding: 14px 0;
     text-align: center;
     cursor: pointer;

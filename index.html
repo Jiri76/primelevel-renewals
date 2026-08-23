@@ -295,6 +295,7 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
+    transform: scale(1.015);
   }
   .add-trigger:active { transform: scale(0.94); }
   /* Idle auto-hide: fades out after 30s of no clicks anywhere on the
@@ -343,10 +344,15 @@
     border-radius: 10px;
     padding: 16px 18px;
   }
-  /* Same layout language as .edit-row: fields grow to fill available
-     space, Save sits flush right, 16px break between the two groups
-     (double the 8px used inside each group) -- identical rhythm to the
-     edit panel, not just a similar one. */
+  /* Same layout language as .edit-row: fixed-width fields, Save sits
+     flush right via space-between. With only one button (no Delete),
+     this form's gap is naturally much wider than the edit row's --
+     276 (name) + 8 (gap) + 130 (date) + 90 (Save) = 504 of the 620px
+     row, leaving 116px, not the same "16px" the edit row lands on.
+     That's expected, not a bug: fewer buttons means more leftover
+     space, not an equal gap by design. (An earlier version of this
+     comment claimed a matching 16px gap here -- that was never
+     actually true once measured; corrected.) */
   /* space-between, not flex-grow -- so the name field can stay a FIXED
      width shared with #editName below, genuinely pixel-identical in
      both forms regardless of how many buttons follow. (flex-grow was
@@ -396,7 +402,11 @@
      comment); reusing that exact value here, rather than letting this
      field size itself independently, is what makes them identical. */
   #newItemName, #editName { flex: 0 0 auto; width: 276px; }
-  #newItemDate { flex: 0 0 auto; width: 110px; }
+  /* 130px, not the earlier 110px -- measured live: the "DD/MM/YYYY"
+     placeholder needs ~121px (text + padding + border) at this font,
+     110px clipped the final "Y". 130px gives real breathing room, not
+     just the bare minimum. */
+  #newItemDate { flex: 0 0 auto; width: 130px; }
   /* Hidden by default -- an empty error div still reserves its own
      line-height plus margin-top even with no text in it, which was
      silently making the bottom padding look bigger than the top (23px
@@ -447,6 +457,7 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
+    transform: scale(1.015);
   }
   .add-save-btn:active {
     transform: scale(0.96);
@@ -477,7 +488,7 @@
     margin-bottom: 15px;
     cursor: pointer;
     user-select: none;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, transform 0.1s ease;
   }
   /* Hovering the row frames all four sides in white (same thin 1px
      thickness, plain border-color swap, no box-shadow) -- the only
@@ -487,9 +498,12 @@
      from when a child button needed the highlight to survive being
      hovered directly -- no longer strictly necessary now that the row
      has no interactive children in its normal view, but harmless to
-     leave as-is. */
+     leave as-is. Also gets the same scale(1.015) "pop" as every other
+     hoverable control on this page (+ circle, Save/Delete, add-form
+     Save) -- one consistent hover language across the whole app. */
   .item.row-hovered {
     border-color: var(--white);
+    transform: scale(1.015);
   }
   .item-name {
     color: var(--white);
@@ -519,13 +533,13 @@
     flex: 1;
   }
   /* space-between, not flex-grow -- with a fixed-width name field
-     (shared with #newItemName above), the row's own math already works
-     out to exactly a 16px gap here with nothing left over: 276 (name) +
-     8 (gap) + 110 (date) + 152 (Save+8+Delete) = 546, leaving exactly
-     16px of the 562px row for space-between to place as one clean gap.
-     Double the 8px used inside each group (name<->date, Save<->Delete),
-     achieved without any extra CSS -- not a coincidence, the fixed
-     widths were chosen to land exactly here. */
+     (shared with #newItemName above), space-between places whatever's
+     left as one clean gap between the two groups. Measured live at the
+     current widths (620px row content): 276 (name) + 8 (gap) + 130
+     (date) + 188 (90 Save + 8 + 90 Delete) = 602, leaving an 18px gap.
+     (Comment previously cited stale 110px-date/562px-row numbers from
+     an earlier round of width changes -- corrected here to the real,
+     measured values, not re-derived from memory.) */
   .edit-row {
     display: flex;
     align-items: center;
@@ -541,7 +555,7 @@
     align-items: center;
     gap: 8px;
   }
-  #editDate { flex: 0 0 auto; width: 110px; }
+  #editDate { flex: 0 0 auto; width: 130px; }
   /* border-width: full 1px, not the 0.5px used elsewhere -- same
      reasoning as .add-save-btn above: this button sits directly next
      to the 1px-bordered Name/Date inputs and needs to match their
@@ -576,6 +590,7 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
+    transform: scale(1.015);
   }
   .edit-save-btn:active,
   .edit-delete-btn:active {

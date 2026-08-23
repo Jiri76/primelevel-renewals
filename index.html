@@ -172,17 +172,20 @@
     opacity: 0.45;
     transition: opacity 0.15s ease, transform 0.1s ease;
   }
-  /* transform: scale(1.03) -- the standard, subtle "lift" hover effect
-     used on countless real product buttons (Stripe, Linear, etc.): a
-     small 3% scale-up, not a dramatic bounce, that reads as "natural"
-     rather than gimmicky. Pairs with the button's existing :active
-     scale(0.96) press-down below -- hover lifts slightly out, pressing
-     pushes slightly in, a coherent pair rather than a one-off effect.
-     Animates through the same transition:transform 0.1s ease already
-     on the base .auth-btn rule, so this needed no new transition
-     property. Scoped to this button only for now -- not applied to
-     other buttons elsewhere in the app, which don't currently have
-     this effect; ask if you'd like it made consistent everywhere. */
+  /* transform: scale(1.015) -- the standard, subtle "lift" hover effect
+     used on countless real product buttons (Stripe, Linear, etc.), a
+     small scale-up rather than a dramatic bounce. Pairs with the
+     button's existing :active scale(0.96) press-down below -- hover
+     lifts slightly out, pressing pushes slightly in, a coherent pair
+     rather than a one-off effect. Now applied app-wide (item rows, "+"
+     circle, edit Save/Delete, add-form Save all have their own hover
+     pop too), but NOT all at this same 1.5% value -- this button and
+     the item row are the two kept at 1.5% deliberately, per explicit
+     request; the "+" circle and Save/Delete were bumped to 3% because
+     at their much smaller pixel size, 1.5% barely moves at all (a %
+     scale is relative to the element's own size, so the same
+     percentage reads very differently on a 660px row vs a 90px
+     button). See each element's own hover rule for its value. */
   .auth-btn:hover {
     opacity: 1;
     background: var(--white);
@@ -295,7 +298,12 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
-    transform: scale(1.015);
+    /* 3%, not the 1.5% used on the item row / sign-in button -- at this
+       circle's small 56px size, 1.5% only moved ~0.8px, imperceptible.
+       3% reads as an actual pop here. Deliberately different from the
+       row/auth-btn value, not an inconsistency -- see the item-row and
+       auth-btn comments for why those two stay at 1.5%. */
+    transform: scale(1.03);
   }
   .add-trigger:active { transform: scale(0.94); }
   /* Idle auto-hide: fades out after 30s of no clicks anywhere on the
@@ -462,7 +470,13 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
-    transform: scale(1.015);
+    /* 3%, matching .edit-save-btn/.edit-delete-btn -- this button is
+       genuinely identical to those in every other respect (color,
+       border, size), so its hover pop stays identical too. See the
+       .auth-btn:hover comment above for why 3% vs the row/auth-btn's
+       1.5% -- smaller buttons need the bigger percentage to actually
+       read as a pop. */
+    transform: scale(1.03);
   }
   .add-save-btn:active {
     transform: scale(0.96);
@@ -595,7 +609,11 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
-    transform: scale(1.015);
+    /* 3%, not 1.5% -- see the .auth-btn:hover comment for why: these
+       90px buttons need the bigger percentage to actually read as a
+       pop, while the much larger item row and sign-in button stay at
+       1.5% deliberately. */
+    transform: scale(1.03);
   }
   .edit-save-btn:active,
   .edit-delete-btn:active {

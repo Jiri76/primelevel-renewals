@@ -181,7 +181,16 @@
     outline: none;
     margin-bottom: 50px;
   }
-  #authEmail::placeholder { color: var(--placeholder); }
+  /* text-align:center on the placeholder specifically -- NOT the same
+     text-align:left set on #authEmail itself above. This is safe and
+     doesn't reintroduce the cursor-drift problem that left-alignment
+     fixed: the placeholder is a static label that's never edited
+     character-by-character -- it just vanishes the instant you type
+     the first letter -- so there's no repeated re-centering while
+     editing it, unlike real typed text. ::placeholder genuinely
+     accepts its own independent text-align in every modern browser,
+     confirmed real support, not a hack. */
+  #authEmail::placeholder { color: var(--placeholder); text-align: center; }
   /* Real bug found and fixed: Chrome's autofill forces its own light
      background + dark text on this field once it recognizes it as an
      email/login input, completely overriding the navy/white styling

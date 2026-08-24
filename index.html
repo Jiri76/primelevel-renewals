@@ -246,11 +246,14 @@
      circle, edit Save/Delete, add-form Save all have their own hover
      pop too), but NOT all at this same 1.5% value -- this button and
      the item row are the two kept at 1.5% deliberately, per explicit
-     request; the "+" circle and Save/Delete were bumped to 3% because
-     at their much smaller pixel size, 1.5% barely moves at all (a %
-     scale is relative to the element's own size, so the same
-     percentage reads very differently on a 660px row vs a 90px
-     button). See each element's own hover rule for its value. */
+     request. The "+" circle is at 3% (at its much smaller 56px size,
+     1.5% barely moves at all -- a % scale is relative to the element's
+     own size, so the same percentage reads very differently on a
+     660px row vs a much smaller control). Save/Delete (both add-form
+     and edit-panel) were bumped to 3% for the same reason, then
+     explicitly dialed back down to 2% per direct follow-up feedback --
+     3% felt like too much specifically on those buttons. See each
+     element's own hover rule for its actual current value. */
   .auth-btn:hover:not(:disabled) {
     opacity: 1;
     background: var(--white);

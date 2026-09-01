@@ -953,7 +953,22 @@
         closeAddPopover();
         return;
       }
+      // Pop open instantly, 2026-09-02 -- real request: the card was
+      // growing/sliding down over the CSS transition's 250ms (the same
+      // max-height transition that gives the wrapper's own idle-hide and
+      // the outside-click-dismiss their smooth collapse), which read as
+      // an unwanted "sliding from the top" reveal. It should just
+      // appear the instant the trigger is pressed. Same no-transition/
+      // reflow/restore trick already used for the outside-click dismiss
+      // below (and, identically, on Investments' own copy of this same
+      // mechanism the same day) -- force this one open-moment to skip
+      // the transition, then restore it so a later CLOSE (toggle,
+      // outside click, 60s idle) still collapses smoothly, which
+      // nothing asked to change.
+      addPopover.style.transition = 'none';
       addPopover.classList.add('open');
+      void addPopover.offsetHeight; // force the no-transition style to actually apply
+      addPopover.style.transition = '';
       nameInput.focus();
       resetCollapseTimer();
     });
@@ -1326,13 +1341,14 @@
       saveBtn.addEventListener('mousedown', async () => {
         setError(errorEl, '');
         const newName = nameEl.value.trim();
-        if (!newName) {
-          setError(errorEl, 'Name is required.');
-          return;
-        }
         const isoDate = parseDDMMYYYY(dateEl.value);
-        if (!isoDate) {
-          setError(errorEl, 'Please check your date.');
+        // Combined into one message, 2026-09-02, per explicit request to
+        // match Investments' own validation exactly ("Please enter both
+        // a ticker and a company name.") -- was two separate checks
+        // ("Name is required." / "Please check your date."), fired one
+        // at a time depending on which field happened to be wrong.
+        if (!newName || !isoDate) {
+          setError(errorEl, 'Please enter both a name and a date.');
           return;
         }
         const { error } = await supabase
@@ -1385,16 +1401,16 @@
     addBtn.addEventListener('click', async () => {
       setError(addDateError, '');
       const name = nameInput.value.trim();
-      // Was a silent no-op before (nothing happened at all if either
-      // field was left blank) -- now matches the edit panel's own
-      // validation exactly, same wording, same red .date-error style.
-      if (!name) {
-        setError(addDateError, 'Name is required.');
-        return;
-      }
       const isoDate = parseDDMMYYYY(dateInput.value);
-      if (!isoDate) {
-        setError(addDateError, 'Please check your date.');
+      // Combined into one message, 2026-09-02, per explicit request to
+      // match Investments' own validation exactly ("Please enter both a
+      // ticker and a company name.") -- was two separate checks ("Name
+      // is required." / "Please check your date."), fired one at a time
+      // depending on which field happened to be wrong; also applied to
+      // the edit panel's identical Save validation just above, so both
+      // save paths stay consistent with each other, same as before.
+      if (!name || !isoDate) {
+        setError(addDateError, 'Please enter both a name and a date.');
         return;
       }
 

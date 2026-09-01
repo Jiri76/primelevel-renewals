@@ -915,6 +915,7 @@
     const addTrigger = document.getElementById('addTrigger');
     const addWrapper = document.querySelector('.add-wrapper');
     const addPopover = document.getElementById('addPopover');
+    const addPopoverInner = document.querySelector('.add-popover-inner');
     const nameInput = document.getElementById('newItemName');
     const dateInput = document.getElementById('newItemDate');
     const addBtn = document.getElementById('addBtn');
@@ -1032,8 +1033,23 @@
     // interactions generally, not specific to this bug. The "+"
     // trigger's own handler (and Save/Delete/inputs) still listen on
     // `click` as normal -- only this outside-dismiss listener changed.
+    //
+    // Real bug found and fixed 2026-09-02, reported live as "close to
+    // the plus button it doesn't disappear, have to click multiple
+    // times": this checked `addWrapper.contains(e.target)` -- but
+    // .add-wrapper is a bare block element with no width set, so it
+    // stretches to the FULL container width, well past the visible bar
+    // on either side (confirmed by direct measurement doing the
+    // identical fix on Investments' own copy of this exact mechanism
+    // the same day -- see that file's own comment on this same bug for
+    // the full write-up). Any click landing in that invisible margin
+    // read as "inside," so it only reset the idle timer instead of
+    // dismissing. Scoped to what's actually visible instead: the
+    // trigger circle, or the popover's own real card
+    // (.add-popover-inner, which has a background/border painted right
+    // up to its true edges here, unlike .add-wrapper).
     document.addEventListener('mousedown', (e) => {
-      const clickedInsideWrapper = addWrapper.contains(e.target);
+      const clickedInsideWrapper = addTrigger.contains(e.target) || addPopoverInner.contains(e.target);
 
       if (addWrapper.classList.contains('idle-hidden')) {
         // Currently hidden -- any click anywhere reveals it, UNLESS

@@ -286,6 +286,13 @@
      else in this app. */
   #authError {
     margin-top: 8px;
+    /* Explicit preservation, 2026-09-02: the shared .date-error rule
+       above just moved to 15px/centered to match Investments' add/edit
+       error text -- this sign-in card is a different, separately-locked
+       design (see the sign-in redesign lock), never part of that
+       request, so it keeps its original 13px/left-aligned look here. */
+    font-size: 13px;
+    text-align: left;
   }
   /* display:none by default, same established pattern as .date-error
      just above -- an empty div with margin-top still reserves that
@@ -540,8 +547,18 @@
   .date-error {
     display: none;
     color: var(--red);
-    font-size: 13px;
-    margin-top: 6px;
+    /* 13px -> 15px, margin-top 6px -> 4px, centered added, 2026-09-02 --
+       explicit request to match Investments' own add/edit-panel error
+       text exactly (.add-error / .holding-edit-error there: 15px, red,
+       centered, margin-top:4px), since that styling was itself copied
+       FROM here originally -- brought back in sync. Scoped to leave
+       #authError (the sign-in card's error, a different context, not
+       part of this request) at its original 13px/left-aligned look via
+       its own override just below, same pattern already used there for
+       margin-top. */
+    font-size: 15px;
+    text-align: center;
+    margin-top: 4px;
     flex-basis: 100%;
   }
   .date-error.visible {

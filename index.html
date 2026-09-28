@@ -810,6 +810,48 @@
     text-align: center;
     padding: 0 0 40px;
   }
+
+  /* RESPONSIVE (owner, 2026-09-28: every page must fit every device).
+     The add form and the edit row are one fixed 620px row (276 name +
+     130 date + 90 Save [+ 90 Delete]), which only fits from ~700px wide.
+     Below that the card clipped it: on a 375px phone the date field was
+     half hidden and Save/Delete were invisible. On phones they now stack:
+     name, date, then a full-width Save (add form) or Save + Delete side
+     by side (edit row), and a row being edited grows to fit. Tablets and
+     desktop keep the one-row layout exactly as before. */
+  @media (max-width: 699px) {
+    .add-row,
+    .edit-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .add-fields,
+    .edit-fields {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    #newItemName,
+    #editName,
+    #newItemDate,
+    #editDate {
+      width: 100%;
+    }
+    .add-save-btn {
+      width: 100%;
+    }
+    .edit-actions > button {
+      flex: 1;
+      width: auto;
+    }
+    .add-popover.open {
+      max-height: 220px; /* the stacked form (~150px, ~170px with an error line) instead of the one-row 160px */
+    }
+    .item:has(.edit-panel) {
+      height: auto;
+    }
+  }
 </style>
 </head>
 <body>

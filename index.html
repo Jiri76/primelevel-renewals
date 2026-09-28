@@ -121,6 +121,35 @@
      from here (no "send a different link" option) -- this screen is
      only ever reached by following a link from elsewhere, ordinary
      users never revisit or need to retype anything here. */
+  /* RESPONSIVE (owner, 2026-09-28: every page must fit every device).
+     Desktop is untouched. Below 540px (the 500px card + the page's 2 x
+     20px side padding) the card takes the available width instead of
+     pushing the page to 520px on a 375px phone, and the email field and
+     button (283px) shrink with it on the smallest phones. */
+  @media (max-width: 540px) {
+    .auth-card {
+      width: 100%;
+    }
+    #authEmail,
+    .auth-btn {
+      max-width: 100%;
+    }
+  }
+  /* Phone titles: the same steps as every Masterboard page (44px on
+     phones, 38px on the smallest), so the whole family behaves the same. */
+  @media (max-width: 720px) {
+    #appContainer h1,
+    #authContainer h1 {
+      font-size: 44px;
+      line-height: normal;
+    }
+  }
+  @media (max-width: 359px) {
+    #appContainer h1,
+    #authContainer h1 {
+      font-size: 38px;
+    }
+  }
   .auth-card.sent {
     min-height: 279px;
     justify-content: center;

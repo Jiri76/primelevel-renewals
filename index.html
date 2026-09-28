@@ -60,10 +60,11 @@
      container which had to be de-centered to anchor its tiles left.
      Sign-in screen's h1 is untouched by this rule. */
   #appContainer {
-    padding-top: 100px;
+    padding-top: 87px; /* was 100 (owner 2026-09-28): the "Renewals" letters start 13px below their box top, so they land exactly 100px from the page top BY EYE, like every Masterboard page */
   }
   #appContainer h1 {
-    font-size: 60px; /* bumped from 50px per explicit request -- matches Masterboard/Investments/Insider Edge titles across the whole PrimeLevel family now */
+    font-size: 50px; /* owner 2026-09-28: sub-page titles 50px (the Masterboard home title stays 60px) */
+    line-height: 65px; /* same title line as Insider Edge, Inbox Report and Investments */
     margin: 0;
     text-align: center;
   }
@@ -80,12 +81,13 @@
      the left. 740px gives the 700px card a genuine, symmetric 20px on
      both sides -- confirmed live after this fix, not assumed. */
   #authContainer {
-    padding-top: 100px;
+    padding-top: 87px; /* was 100 (owner 2026-09-28): title letters exactly 100px from the page top BY EYE */
     max-width: 740px;
   }
   #authContainer h1 {
-    font-size: 60px; /* bumped from 50px per explicit request -- matches Masterboard/Investments/Insider Edge titles across the whole PrimeLevel family now */
-    margin: 0 0 100px;
+    font-size: 50px; /* owner 2026-09-28: sub-page titles 50px (the Masterboard home title stays 60px) */
+    line-height: 65px;
+    margin: 0 0 85px; /* was 100: the baseline sits 15px above the box bottom, so 85 puts the card's top edge exactly 100px below the letters BY EYE */
     text-align: center;
   }
   /* Sign-in card -- width back to 500px (was 400px). padding: 50px
@@ -357,8 +359,9 @@
      content-height-only box + any transform growth at all = clipping,
      deterministically, not something that needed visual reproduction).
      2px of padding each side gives real headroom (more than double
-     the ~0.84px actually needed). Margin-top/margin-bottom are left
-     exactly as they were (100px each, untouched) so the LOCKED
+     the ~0.84px actually needed). Margin-top/margin-bottom were left
+     untouched by this fix (margin-top is now 83px: title -> circle =
+     100px by eye since 2026-09-28) so the LOCKED
      collapsed-state gap (title->list == 100px when idle-hidden) stays
      exactly 100px -- max-height:0 collapses this padding away to
      nothing regardless of its value, same as it already did for the
@@ -367,13 +370,13 @@
      previously-locked 100px to 102px each -- a small, disclosed
      trade-off, not a silent drift. */
   .add-wrapper {
-    margin-top: 100px;
+    margin-top: 83px; /* was 100 (owner 2026-09-28): title letters' baseline -> "+" circle edge = 100px BY EYE (15px of title box below the baseline + 83 + this wrapper's 2px padding-top) */
     margin-bottom: 100px;
     padding-top: 2px;
     padding-bottom: 2px;
     max-height: 260px;
     overflow: hidden;
-    transition: max-height 0.25s ease, margin-bottom 0.25s ease;
+    transition: max-height 0.25s ease, margin-top 0.25s ease, margin-bottom 0.25s ease;
   }
   /* Collapses the whole wrapper (circle + its own margins) down to
      nothing, so .itemList rises to close the gap -- an explicit,
@@ -388,6 +391,7 @@
      stranded with no visible trigger to close it via. */
   .add-wrapper.idle-hidden {
     max-height: 0;
+    margin-top: 81px; /* owner 2026-09-28: with the circle hidden, title letters -> first renewal card = 100px BY EYE (15 below the baseline + 81 + the 4px of padding a collapsed wrapper keeps) */
     margin-bottom: 0;
   }
   /* Size scaled by the same ratio the title grew (32px -> 50px =

@@ -71,34 +71,6 @@
     }
   }
 
-  /* Sign out: LOCKED 2026-10-01 (primelevel-masterboard/SIGNIN-BOX-STANDARD.md,
-     "Sign out"), the same on every page. Top-right corner, by eye 40px from
-     the top and 40px from the right; phones 20 / 20. Montserrat 20px bold
-     company gold, no underline. Shown only when signed in. */
-  .signout {
-    position: fixed;
-    top: 37px;
-    right: 40px;
-    z-index: 10;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--gold);
-    text-decoration: none;
-    cursor: pointer;
-  }
-  .signout:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 2px;
-  }
-  .signout[hidden] { display: none; }
-  @media (max-width: 720px) {
-    .signout { top: 17px; right: 20px; }
-  }
   /* Clicking the "+" opens the add-popover in normal page flow, right
      underneath -- it pushes the list down rather than floating over it,
      so it never overlaps the first item. Same resting/hover color
@@ -607,13 +579,16 @@
     }
   }
 </style>
+<!-- PrimeLevel's one front door (shared by every private page, served by the
+     Masterboard on this same website): decides what may show BEFORE the first
+     paint, sends anyone but the signed-in owner to the Masterboard front door,
+     and draws Sign out. -->
+<script src="/primelevel-masterboard/door.js"></script>
 </head>
 <body>
-  <!-- Hidden until the session check confirms the owner (see route()), so
-       nothing ever shows for anyone else: they are sent to the Masterboard
-       front door instead. -->
-  <button type="button" class="signout" id="signOutButton" hidden>Sign out</button>
-  <div class="container" id="appContainer" style="display: none;">
+  <!-- Private: door.js shows it only to the signed-in owner (everyone else is
+       sent to the Masterboard front door). -->
+  <div class="container pl-private" id="appContainer">
     <h1>Renewals</h1>
 
     <div class="add-wrapper">
@@ -642,81 +617,12 @@
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_-gt5PPGL45s3hRsfOosH6g_q3yP-b-_';
     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-    // ---- The gate: Renewals is part of the Masterboard (owner, 2026-10-01) ----
-    // There is no sign-in here any more. The one front door is the
-    // Masterboard: it signs the owner in, and because both pages live on the
-    // same website (jiri76.github.io), the session it creates is the one this
-    // page reads. Anyone else is sent to the front door, which shows them the
-    // sign-in box or "no access". The same owner check as the front door
-    // (the database's own allow-list, today only info@primelevel.co.uk), so
-    // the two can never disagree. This only decides what the SCREEN shows;
-    // the real lock is the database (RLS: each row belongs to its user_id).
-    const FRONT_DOOR_URL = 'https://jiri76.github.io/primelevel-masterboard/';
-    const AUTH_STORAGE_KEY = 'sb-kenlhcatkjthhzuaznpg-auth-token'; // where supabase-js keeps the session
-    const appContainer = document.getElementById('appContainer');
-    const signOutButton = document.getElementById('signOutButton');
-
-    function goToFrontDoor() {
-      window.location.replace(FRONT_DOOR_URL); // replace: Back never returns to this page
-    }
-
-    let shownForUser = null;
-    function showAppScreen(userId) {
-      if (shownForUser === userId) return; // e.g. a token refresh for the same person
-      shownForUser = userId;
-      appContainer.style.display = 'block';
-      signOutButton.hidden = false;
-      loadItems();
-    }
-
-    let routedFor = null;
-    async function route(session) {
-      const key = session ? session.user.id : 'signed-out';
-      if (key === routedFor) return;
-      routedFor = key;
-      if (!session) { goToFrontDoor(); return; }
-      const { data: allowed, error } = await supabase.rpc('is_email_report_viewer');
-      if (error || !allowed) {
-        if (error) console.error('Could not check Renewals access:', error);
-        goToFrontDoor(); // the front door shows "no access" or "could not check"
-        return;
-      }
-      showAppScreen(session.user.id);
-    }
-
-    // Sign out: everywhere on this website, then back to the front door.
-    // Also forgets what the Masterboard home remembers on this browser (same
-    // website, same storage): the owner flag and the cached photo.
-    // KEEP IN STEP with the Sign out in primelevel-masterboard/index.html.
-    signOutButton.addEventListener('click', async () => {
-      try {
-        localStorage.removeItem('masterboard-owner-v1');
-        localStorage.removeItem('masterboard-picture-cache-v1');
-      } catch { /* storage blocked: nothing was stored either */ }
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        // No connection: Supabase keeps the session when it can't reach the
-        // server, so remove it from this browser directly. Sign out must
-        // never leave the page signed in.
-        console.error('Sign out could not reach Supabase:', error);
-        try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch { /* nothing stored */ }
-      }
-      goToFrontDoor();
-    });
-
-    // Supabase's advice: no awaited Supabase calls inside this callback, so
-    // the check runs just after it.
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setTimeout(() => route(session), 0);
-    });
-    // Back/forward can restore a frozen copy of this page: re-check, so a
-    // page left signed in never reappears after a sign out.
-    window.addEventListener('pageshow', async (event) => {
-      if (!event.persisted) return;
-      routedFor = null;
-      const { data: { session } } = await supabase.auth.getSession();
-      route(session);
-    });
+    // ---- One front door (owner, 2026-10-01/02) ----
+    // Renewals is part of the Masterboard: no sign-in here. door.js (loaded
+    // in <head>, the same file every private page uses) sends anyone but the
+    // signed-in owner to the Masterboard front door and draws the corner
+    // Sign out; the list loads only for the owner (bottom of this script).
+    // The real lock is the database (RLS: each row belongs to its user_id).
 
     const addTrigger = document.getElementById('addTrigger');
     const addWrapper = document.querySelector('.add-wrapper');
@@ -1239,11 +1145,10 @@
       }
     });
 
-    // No unconditional loadItems() here -- it's called from
-    // showAppScreen() only once route() has confirmed the owner, never
-    // before. Nothing fetches or renders for anyone else.
-    const { data: { session: initialSession } } = await supabase.auth.getSession();
-    route(initialSession);
+    // The list loads only for the signed-in owner (door.js; at once when it
+    // already knew the owner). Nothing fetches or renders for anyone else.
+    PrimeLevelDoor.whenOwner(loadItems);
+    PrimeLevelDoor.gate(supabase);
   </script>
   <script>
     // Registered purely so the browser offers "Install" -- see sw.js for

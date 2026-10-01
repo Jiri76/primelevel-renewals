@@ -423,6 +423,25 @@
     margin-top: 81px; /* owner 2026-09-28: with the circle hidden, title letters -> first renewal card = 100px BY EYE (15 below the baseline + 81 + the 4px of padding a collapsed wrapper keeps) */
     margin-bottom: 0;
   }
+  /* 100 by eye on phones too (owner, 2026-10-01: "100 everywhere"): page
+     top -> title letters, title letters -> the sign-in card, the "+"
+     circle, or (circle hidden) the first renewal card. The phone title is
+     smaller with a normal line, so the space below its letters differs.
+     Placed here, after the rules above, so it wins over them. */
+  @media (max-width: 720px) {
+    #appContainer,
+    #authContainer { padding-top: 90px; }
+    #authContainer h1 { margin-bottom: 89px; }
+    .add-wrapper { margin-top: 87px; }
+    .add-wrapper.idle-hidden { margin-top: 85px; }
+  }
+  @media (max-width: 359px) {
+    #appContainer,
+    #authContainer { padding-top: 91px; }
+    #authContainer h1 { margin-bottom: 90px; }
+    .add-wrapper { margin-top: 88px; }
+    .add-wrapper.idle-hidden { margin-top: 86px; }
+  }
   /* Size scaled by the same ratio the title grew (32px -> 50px =
      x1.5625): 36px -> 56px, and the "+" glyph's own font-size 20px ->
      31px to match, staying visually proportional rather than a bigger

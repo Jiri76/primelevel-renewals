@@ -33,328 +33,72 @@
     font-family: 'Montserrat', sans-serif;
     min-height: 100%;
   }
-  /* max-width: 640px -> 700px, per explicit request to make the item
-     rows a bit wider. Shared by both screens (sign-in and app) -- the
-     sign-in card has its own separate max-width:320px so it's
-     unaffected in size, just sits with a little more breathing room
-     around it now. Still margin:0 auto, so everything stays centered
-     exactly as before. */
+  /* ONE screen. Renewals is part of the Masterboard (owner, 2026-10-01:
+     "no sign-in box in Renewals… you won't be able to access Renewals
+     unless you go through the Masterboard"): signing in happens once, on
+     the Masterboard front door; anyone not signed in as the owner is sent
+     there (see route() in the script). max-width 700px (owner: item rows a
+     bit wider), centred. */
   .container {
     max-width: 700px;
     margin: 0 auto;
     padding: 48px 20px 80px;
   }
-  /* Base h1 -- unchanged, still what the sign-in screen uses. The app
-     screen (post sign-in) gets its own override right below so this
-     change stays scoped to exactly the one screen it was asked for,
-     not both. */
-  h1 {
-    color: var(--gold);
-    font-weight: 700;
-    font-size: 32px;
-    margin: 0 0 32px;
-  }
-  /* App-screen-only title: bigger (50px, +18 from the base 32px),
-     centered on the true viewport -- safe here because .container is
-     already page-centered (margin:0 auto), unlike Masterboard's
-     container which had to be de-centered to anchor its tiles left.
-     Sign-in screen's h1 is untouched by this rule. */
   #appContainer {
     padding-top: 87px; /* was 100 (owner 2026-09-28): the "Renewals" letters start 13px below their box top, so they land exactly 100px from the page top BY EYE, like every Masterboard page */
   }
+  /* The family title: gold, bold, 50px, centred (owner 2026-09-28). */
   #appContainer h1 {
-    font-size: 50px; /* owner 2026-09-28: sub-page titles 50px (the Masterboard home title stays 60px) */
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 50px;
     line-height: 65px; /* same title line as Insider Edge, Inbox Report and Investments */
     margin: 0;
     text-align: center;
   }
 
-  /* Sign-in screen title: matched to #appContainer h1 exactly (50px,
-     centered, same 100px top-of-page padding) rather than the smaller
-     32px/left-aligned base h1 rule -- scoped to #authContainer only,
-     same pattern as the app screen's own override, so this doesn't
-     touch the app screen's title at all.
-     max-width: 740px -- real bug caught by measurement, not eyeballed:
-     the shared .container's 700px max-width leaves only 660px of
-     actual content room (20px padding each side), so a 700px-wide
-     card poked 20px past the right padding while sitting flush against
-     the left. 740px gives the 700px card a genuine, symmetric 20px on
-     both sides -- confirmed live after this fix, not assumed. */
-  #authContainer {
-    padding-top: 87px; /* was 100 (owner 2026-09-28): title letters exactly 100px from the page top BY EYE */
-    max-width: 740px;
-  }
-  #authContainer h1 {
-    font-size: 50px; /* owner 2026-09-28: sub-page titles 50px (the Masterboard home title stays 60px) */
-    line-height: 65px;
-    margin: 0 0 85px; /* was 100: the baseline sits 15px above the box bottom, so 85 puts the card's top edge exactly 100px below the letters BY EYE */
-    text-align: center;
-  }
-  /* Sign-in card -- width back to 500px (was 400px). padding: 50px
-     top/bottom, 25px left/right -- gaps: 50 (top) -> lead -> 25 ->
-     email -> 50 -> button -> 50 (bottom). Height stays auto, same
-     reasoning as before -- the card's real height is whatever these
-     gaps + content total, not a fixed number fought against. */
-  .auth-card {
-    background: var(--input-bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 50px 25px 50px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 500px;
-    margin: 0 auto;
-  }
-  /* Confirmation state, after a magic link is successfully sent: the
-     form (lead text, email input, button) and any error line are
-     hidden entirely, replaced by just the confirmation message,
-     centered in the middle of the SAME box -- not a smaller box that
-     jumps/shrinks. 279px is the real, measured height of the normal
-     resting-state card (50 padding + lead + 8 + email(50) + 50 +
-     button(50) + 50 padding), confirmed live, not guessed -- min-height
-     here locks the confirmation state to that same size so nothing
-     visibly resizes when the card's content swaps. justify-content:
-     center then centers the sole remaining child vertically within
-     that locked height (align-items:center above already centers it
-     horizontally). Per explicit user request: no way back to the form
-     from here (no "send a different link" option) -- this screen is
-     only ever reached by following a link from elsewhere, ordinary
-     users never revisit or need to retype anything here. */
-  /* RESPONSIVE (owner, 2026-09-28: every page must fit every device).
-     Desktop is untouched. Below 540px (the 500px card + the page's 2 x
-     20px side padding) the card takes the available width instead of
-     pushing the page to 520px on a 375px phone, and the email field and
-     button (283px) shrink with it on the smallest phones. */
-  @media (max-width: 540px) {
-    .auth-card {
-      width: 100%;
-    }
-    #authEmail,
-    .auth-btn {
-      max-width: 100%;
-    }
-  }
   /* Phone titles: the same steps as every Masterboard page (44px on
      phones, 38px on the smallest), so the whole family behaves the same. */
   @media (max-width: 720px) {
-    #appContainer h1,
-    #authContainer h1 {
+    #appContainer h1 {
       font-size: 44px;
       line-height: normal;
     }
   }
   @media (max-width: 359px) {
-    #appContainer h1,
-    #authContainer h1 {
+    #appContainer h1 {
       font-size: 38px;
     }
   }
-  .auth-card.sent {
-    min-height: 279px;
-    justify-content: center;
-  }
-  .auth-card.sent .auth-card-main,
-  .auth-card.sent #authError {
-    display: none;
-  }
-  .auth-card-main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-  /* font-weight:700 + font-size:15px still match "Send magic link"
-     exactly (typography stays matched). opacity removed (was 0.45,
-     copying the button's dimmed-at-rest look) -- explicit correction:
-     that dimming is meant to signal an interactive element, not a
-     static label, so this is now the standard full-opacity white text
-     color used everywhere else, not artificially grayed. */
-  /* margin-bottom: 8px (was 25px) -- "sits on the box," a minimal
-     attached gap, not the earlier fixed 25px slot. The three real
-     structural landmarks (top->lead 50px, email->button 50px,
-     button->card-bottom 50px) are untouched -- only this one and
-     #authError's own gap (below) became minimal. */
-  .auth-lead {
-    color: var(--white);
-    font-size: 15px;
-    font-weight: 700;
-    text-align: center;
-    margin: 0 0 8px;
-  }
-  /* font-size back to 20px (was 18px) -- explicit "still twenty."
-     width: kept at 283px, the same value already established for a
-     20px field in an earlier round -- independent of the lead
-     text/button's own (smaller, 15px-driven) width this time. */
-  /* text-align: left, not center -- real bug found and fixed: centering
-     is right for short, FIXED-length fields (the date field, VAT/sort
-     code elsewhere in this project), but email is variable-length free
-     text. Center-aligned text re-centers itself every time a character
-     is typed or deleted, so the on-screen position of every character
-     shifts constantly -- clicking where you SEE a letter no longer
-     reliably places the cursor there, since the text has already moved.
-     That's what caused the "stuck, can't backspace precisely, have to
-     select-all-and-delete" friction the user reported. Left-aligned
-     text has a stable, unmoving start position, which is why every
-     real product (Gmail, every login form) left-aligns email/text
-     fields -- not a style choice, a genuine editing-usability fix. */
-  #authEmail {
-    background: var(--navy);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--white);
+
+  /* Sign out: LOCKED 2026-10-01 (primelevel-masterboard/SIGNIN-BOX-STANDARD.md,
+     "Sign out"), the same on every page. Top-right corner, by eye 40px from
+     the top and 40px from the right; phones 20 / 20. Montserrat 20px bold
+     company gold, no underline. Shown only when signed in. */
+  .signout {
+    position: fixed;
+    top: 37px;
+    right: 40px;
+    z-index: 10;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
     font-family: 'Montserrat', sans-serif;
     font-size: 20px;
-    text-align: left;
-    width: 283px;
-    height: 50px;
-    padding: 0 18px;
-    outline: none;
-    margin-bottom: 50px;
-  }
-  /* text-align:center on the placeholder specifically -- NOT the same
-     text-align:left set on #authEmail itself above. This is safe and
-     doesn't reintroduce the cursor-drift problem that left-alignment
-     fixed: the placeholder is a static label that's never edited
-     character-by-character -- it just vanishes the instant you type
-     the first letter -- so there's no repeated re-centering while
-     editing it, unlike real typed text. ::placeholder genuinely
-     accepts its own independent text-align in every modern browser,
-     confirmed real support, not a hack. */
-  #authEmail::placeholder { color: var(--placeholder); text-align: center; }
-  /* Real bug found and fixed: Chrome's autofill forces its own light
-     background + dark text on this field once it recognizes it as an
-     email/login input, completely overriding the navy/white styling
-     above -- confirmed by the user's own screenshot (a white box with
-     faint dark text, nothing to do with font-weight). The standard,
-     email-safe fix: a giant inset box-shadow the same color as the
-     real background, which Chrome lets authors paint OVER its own
-     autofill background (unlike `background`, which it refuses to
-     let authors override directly), plus -webkit-text-fill-color
-     (autofill also ignores plain `color`). The long `transition` on
-     background-color is the standard trick to stop Chrome's own
-     autofill highlight from flashing yellow for a moment before this
-     override takes effect. */
-  #authEmail:-webkit-autofill,
-  #authEmail:-webkit-autofill:hover,
-  #authEmail:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--white);
-    -webkit-box-shadow: 0 0 0px 1000px var(--navy) inset;
-    box-shadow: 0 0 0px 1000px var(--navy) inset;
-    transition: background-color 5000s ease-in-out 0s;
-  }
-  /* width: 283px -- matched to #authEmail's own width. height: 50px --
-     explicit, exact match to #authEmail's own explicit height, not
-     just an incidental match from matching padding/font. display:flex
-     centers the text vertically within that fixed height (a plain
-     button's default vertical centering isn't reliable enough at an
-     exact pixel height -- explicit centering removes any doubt). */
-  .auth-btn {
-    align-self: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 0.5px solid var(--white);
-    color: var(--white);
-    font-family: 'Montserrat', sans-serif;
     font-weight: 700;
-    font-size: 15px;
-    border-radius: 6px;
-    width: 283px;
-    height: 50px;
-    text-align: center;
+    color: var(--gold);
+    text-decoration: none;
     cursor: pointer;
-    opacity: 0.45;
-    transition: opacity 0.15s ease, transform 0.1s ease;
   }
-  /* transform: scale(1.015) -- the standard, subtle "lift" hover effect
-     used on countless real product buttons (Stripe, Linear, etc.), a
-     small scale-up rather than a dramatic bounce. Pairs with the
-     button's existing :active scale(0.96) press-down below -- hover
-     lifts slightly out, pressing pushes slightly in, a coherent pair
-     rather than a one-off effect. Now applied app-wide (item rows, "+"
-     circle, edit Save/Delete, add-form Save all have their own hover
-     pop too), but NOT all at this same 1.5% value -- this button and
-     the item row are the two kept at 1.5% deliberately, per explicit
-     request. The "+" circle is at 3% (at its much smaller 56px size,
-     1.5% barely moves at all -- a % scale is relative to the element's
-     own size, so the same percentage reads very differently on a
-     660px row vs a much smaller control). Save/Delete (both add-form
-     and edit-panel) were bumped to 3% for the same reason, then
-     explicitly dialed back down to 2% per direct follow-up feedback --
-     3% felt like too much specifically on those buttons. See each
-     element's own hover rule for its actual current value. */
-  .auth-btn:hover:not(:disabled) {
-    opacity: 1;
-    background: var(--white);
-    color: var(--navy);
-    transform: scale(1.015);
+  .signout:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
   }
-  .auth-btn:active { transform: scale(0.96); }
-  /* Disabled during the "Sending..." state (set in JS the instant the
-     button is clicked, before waiting on the network) -- deliberately
-     NO new visual style here. It simply stays at its normal resting
-     0.45 opacity (the :not(:disabled) guard above stops hover from
-     brightening it while disabled) -- reusing the button's existing
-     dim look rather than inventing a separate "loading" style, per
-     explicit request. cursor:not-allowed is the only addition, a
-     standard signal that clicking won't do anything right now. */
-  .auth-btn:disabled {
-    cursor: not-allowed;
+  .signout[hidden] { display: none; }
+  @media (max-width: 720px) {
+    .signout { top: 17px; right: 20px; }
   }
-  /* margin-top: 8px (was 50px) -- explicit correction: this should sit
-     "attached" to the button, minimal gap, the same way .auth-lead now
-     sits attached to the email field above. The real 50px landmark is
-     the card's own padding-bottom, measured from the button's bottom
-     edge in the normal (no error showing) case -- untouched. Scoped to
-     #authError specifically, not the shared .date-error rule below
-     (line ~370) -- that rule is also used by the add-form and
-     edit-panel's own error messages elsewhere in this app, which were
-     never asked to change and stay at their original 6px. Color
-     intentionally left red (var(--red)) -- confirmed explicitly not to
-     change; that's the established validation-error color everywhere
-     else in this app. */
-  #authError {
-    margin-top: 8px;
-    /* Explicit preservation, 2026-09-02: the shared .date-error rule
-       above just moved to 15px/centered to match Investments' add/edit
-       error text -- this sign-in card is a different, separately-locked
-       design (see the sign-in redesign lock), never part of that
-       request, so it keeps its original 13px/left-aligned look here. */
-    font-size: 13px;
-    text-align: left;
-  }
-  /* display:none by default, same established pattern as .date-error
-     just above -- an empty div with margin-top still reserves that
-     margin's worth of space even with zero text in it (this exact
-     project has hit this bug before). Restyled from a small 13px green
-     addendum line into the full confirmation screen's sole content,
-     per explicit request: Montserrat bold, centered. 25px (bumped up
-     from an initial 20px, which read too small once actually seen on
-     screen as this screen's ONLY content) -- this text-align:center is
-     unrelated to #authEmail's own alignment (which was later changed
-     to left, see #authEmail's comment) -- this message is static,
-     never edited, so centering causes none of the cursor-position
-     problems that made centering wrong for the email field. White, not
-     green -- this is now the PRIMARY message of an entire screen state,
-     not a small secondary addition next to other content, so it takes
-     the same prominent white the lead text uses rather than a small
-     success-color accent. No margin-top needed any more either --
-     .auth-card.sent's flex centering (above)
-     positions it, not a fixed offset from content above it. */
-  .auth-sent {
-    display: none;
-    color: var(--white);
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 25px;
-    text-align: center;
-  }
-  .auth-sent.visible {
-    display: block;
-  }
-
   /* Clicking the "+" opens the add-popover in normal page flow, right
      underneath -- it pushes the list down rather than floating over it,
      so it never overlaps the first item. Same resting/hover color
@@ -424,21 +168,17 @@
     margin-bottom: 0;
   }
   /* 100 by eye on phones too (owner, 2026-10-01: "100 everywhere"): page
-     top -> title letters, title letters -> the sign-in card, the "+"
-     circle, or (circle hidden) the first renewal card. The phone title is
-     smaller with a normal line, so the space below its letters differs.
-     Placed here, after the rules above, so it wins over them. */
+     top -> title letters, title letters -> the "+" circle or (circle
+     hidden) the first renewal card. The phone title is smaller with a
+     normal line, so the space below its letters differs. Placed here,
+     after the rules above, so it wins over them. */
   @media (max-width: 720px) {
-    #appContainer,
-    #authContainer { padding-top: 90px; }
-    #authContainer h1 { margin-bottom: 89px; }
+    #appContainer { padding-top: 90px; }
     .add-wrapper { margin-top: 87px; }
     .add-wrapper.idle-hidden { margin-top: 85px; }
   }
   @media (max-width: 359px) {
-    #appContainer,
-    #authContainer { padding-top: 91px; }
-    #authContainer h1 { margin-bottom: 90px; }
+    #appContainer { padding-top: 91px; }
     .add-wrapper { margin-top: 88px; }
     .add-wrapper.idle-hidden { margin-top: 86px; }
   }
@@ -469,11 +209,11 @@
     opacity: 1;
     background: var(--white);
     color: var(--navy);
-    /* 3%, not the 1.5% used on the item row / sign-in button -- at this
-       circle's small 56px size, 1.5% only moved ~0.8px, imperceptible.
-       3% reads as an actual pop here. Deliberately different from the
-       row/auth-btn value, not an inconsistency -- see the item-row and
-       auth-btn comments for why those two stay at 1.5%. */
+    /* 3%, not the 1.5% used on the item row -- at this circle's small
+       56px size, 1.5% only moved ~0.8px, imperceptible. 3% reads as an
+       actual pop here. Deliberately different from the row's value, not
+       an inconsistency -- see the item-row comment for why it stays at
+       1.5%. */
     transform: scale(1.03);
   }
   .add-trigger:active { transform: scale(0.94); }
@@ -588,8 +328,7 @@
      because the extra ~8.6px of that breathing room would otherwise
      sit entirely after the "Y" -- left-aligned text plus equal CSS
      padding does NOT produce equal visual gaps once the field is
-     wider than the text itself. Centering splits it evenly instead,
-     same pattern already used on #authEmail for the same reason. */
+     wider than the text itself. Centering splits it evenly instead. */
   #newItemDate { flex: 0 0 auto; width: 130px; text-align: center; }
   /* Hidden by default -- an empty error div still reserves its own
      line-height plus margin-top even with no text in it, which was
@@ -603,11 +342,7 @@
        explicit request to match Investments' own add/edit-panel error
        text exactly (.add-error / .holding-edit-error there: 15px, red,
        centered, margin-top:4px), since that styling was itself copied
-       FROM here originally -- brought back in sync. Scoped to leave
-       #authError (the sign-in card's error, a different context, not
-       part of this request) at its original 13px/left-aligned look via
-       its own override just below, same pattern already used there for
-       margin-top. */
+       FROM here originally -- brought back in sync. */
     font-size: 15px;
     text-align: center;
     margin-top: 4px;
@@ -808,7 +543,7 @@
     color: var(--navy);
     /* 2%, not the "+" circle's 3% -- explicitly dialed back down per
        direct user feedback (3% felt like too much on Save/Delete
-       specifically). Still bigger than the item row/sign-in button's
+       specifically). Still bigger than the item row's
        1.5% (a % scale is relative to element size, and these 90px
        buttons need more than 1.5% to read as a pop at all), just not
        as much as the circle. */
@@ -874,21 +609,10 @@
 </style>
 </head>
 <body>
-  <!-- Hidden until the initial session check resolves, so there's no
-       flash of the sign-in card for someone who's already signed in. -->
-  <div class="container" id="authContainer" style="display: none;">
-    <h1>Renewals</h1>
-    <div class="auth-card" id="authCard">
-      <div class="auth-card-main">
-        <p class="auth-lead">Sign in to see your renewals.</p>
-        <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" />
-        <button id="authSendBtn" class="auth-btn">Send magic link</button>
-      </div>
-      <div class="date-error" id="authError"></div>
-      <div class="auth-sent" id="authSentMsg"></div>
-    </div>
-  </div>
-
+  <!-- Hidden until the session check confirms the owner (see route()), so
+       nothing ever shows for anyone else: they are sent to the Masterboard
+       front door instead. -->
+  <button type="button" class="signout" id="signOutButton" hidden>Sign out</button>
   <div class="container" id="appContainer" style="display: none;">
     <h1>Renewals</h1>
 
@@ -918,92 +642,80 @@
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_-gt5PPGL45s3hRsfOosH6g_q3yP-b-_';
     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-    // Multi-tenant gate. Each row in the database now has a user_id
-    // (defaults to auth.uid() on insert) and RLS only lets a signed-in
-    // user see/edit/delete their OWN rows -- confirmed at the database
-    // level (a request with no session gets a genuine 401, not just an
-    // empty list). This client-side gate is purely about which SCREEN to
-    // show; the real security boundary is the RLS policy, not this JS.
-    const authContainer = document.getElementById('authContainer');
+    // ---- The gate: Renewals is part of the Masterboard (owner, 2026-10-01) ----
+    // There is no sign-in here any more. The one front door is the
+    // Masterboard: it signs the owner in, and because both pages live on the
+    // same website (jiri76.github.io), the session it creates is the one this
+    // page reads. Anyone else is sent to the front door, which shows them the
+    // sign-in box or "no access". The same owner check as the front door
+    // (the database's own allow-list, today only info@primelevel.co.uk), so
+    // the two can never disagree. This only decides what the SCREEN shows;
+    // the real lock is the database (RLS: each row belongs to its user_id).
+    const FRONT_DOOR_URL = 'https://jiri76.github.io/primelevel-masterboard/';
+    const AUTH_STORAGE_KEY = 'sb-kenlhcatkjthhzuaznpg-auth-token'; // where supabase-js keeps the session
     const appContainer = document.getElementById('appContainer');
-    const authCard = document.getElementById('authCard');
-    const authEmail = document.getElementById('authEmail');
-    const authSendBtn = document.getElementById('authSendBtn');
-    const authError = document.getElementById('authError');
-    const authSentMsg = document.getElementById('authSentMsg');
+    const signOutButton = document.getElementById('signOutButton');
 
-    const EMAIL_REGEX = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
-
-    function showAuthScreen() {
-      appContainer.style.display = 'none';
-      authContainer.style.display = 'block';
+    function goToFrontDoor() {
+      window.location.replace(FRONT_DOOR_URL); // replace: Back never returns to this page
     }
-    function showAppScreen() {
-      authContainer.style.display = 'none';
+
+    let shownForUser = null;
+    function showAppScreen(userId) {
+      if (shownForUser === userId) return; // e.g. a token refresh for the same person
+      shownForUser = userId;
       appContainer.style.display = 'block';
+      signOutButton.hidden = false;
       loadItems();
     }
 
-    authSendBtn.addEventListener('click', async () => {
-      setError(authError, '');
-      authSentMsg.textContent = '';
-      authSentMsg.classList.remove('visible');
-      const email = authEmail.value.trim();
-      if (!EMAIL_REGEX.test(email)) {
-        setError(authError, 'Please enter a valid email.');
+    let routedFor = null;
+    async function route(session) {
+      const key = session ? session.user.id : 'signed-out';
+      if (key === routedFor) return;
+      routedFor = key;
+      if (!session) { goToFrontDoor(); return; }
+      const { data: allowed, error } = await supabase.rpc('is_email_report_viewer');
+      if (error || !allowed) {
+        if (error) console.error('Could not check Renewals access:', error);
+        goToFrontDoor(); // the front door shows "no access" or "could not check"
         return;
       }
-      // Instant feedback the moment the button is pressed, before the
-      // network round-trip even starts -- previously the button just
-      // sat there identically for however long the request took,
-      // which read as "did that even register?" Reuses the button's
-      // existing dim resting look (see .auth-btn:disabled above) rather
-      // than a new style, per explicit request.
-      authSendBtn.disabled = true;
-      authSendBtn.textContent = 'Sending...';
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin + window.location.pathname },
-      });
-      if (!error) {
-        // Swap the card's content entirely rather than appending a
-        // small line to the still-visible form, per explicit request --
-        // .auth-card.sent hides the form/error and centers this message
-        // in the same-sized box (see its CSS comment for the measured
-        // height that keeps this from visibly resizing). Generic
-        // "Check your email." rather than echoing the address back --
-        // this screen is only ever reached right after typing that
-        // same address, so repeating it back added nothing.
-        authCard.classList.add('sent');
-        authSentMsg.textContent = 'Check your email.';
-        authSentMsg.classList.add('visible');
-      } else {
-        // Only reached on failure -- restore the button so the user can
-        // actually retry, since it was left disabled/"Sending..." above.
-        authSendBtn.disabled = false;
-        authSendBtn.textContent = 'Send magic link';
-        if (error.status === 429) {
-          setError(authError, 'Please wait a minute before requesting another link.');
-        } else {
-          setError(authError, 'Could not send the link — please check your connection and try again.');
-        }
+      showAppScreen(session.user.id);
+    }
+
+    // Sign out: everywhere on this website, then back to the front door.
+    // Also forgets what the Masterboard home remembers on this browser (same
+    // website, same storage): the owner flag and the cached photo.
+    // KEEP IN STEP with the Sign out in primelevel-masterboard/index.html.
+    signOutButton.addEventListener('click', async () => {
+      try {
+        localStorage.removeItem('masterboard-owner-v1');
+        localStorage.removeItem('masterboard-picture-cache-v1');
+      } catch { /* storage blocked: nothing was stored either */ }
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        // No connection: Supabase keeps the session when it can't reach the
+        // server, so remove it from this browser directly. Sign out must
+        // never leave the page signed in.
+        console.error('Sign out could not reach Supabase:', error);
+        try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch { /* nothing stored */ }
       }
+      goToFrontDoor();
     });
 
-    authEmail.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') authSendBtn.click();
-    });
-
-    // detectSessionInUrl (on by default) handles the magic-link callback
-    // automatically -- exchanges the code, fires this listener, and
-    // cleans the URL. Also fires on manual sign-in/out, and on the
-    // initial page load with an already-existing session.
+    // Supabase's advice: no awaited Supabase calls inside this callback, so
+    // the check runs just after it.
     supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        showAppScreen();
-      } else {
-        showAuthScreen();
-      }
+      setTimeout(() => route(session), 0);
+    });
+    // Back/forward can restore a frozen copy of this page: re-check, so a
+    // page left signed in never reappears after a sign out.
+    window.addEventListener('pageshow', async (event) => {
+      if (!event.persisted) return;
+      routedFor = null;
+      const { data: { session } } = await supabase.auth.getSession();
+      route(session);
     });
 
     const addTrigger = document.getElementById('addTrigger');
@@ -1528,8 +1240,10 @@
     });
 
     // No unconditional loadItems() here -- it's called from
-    // showAppScreen() once onAuthStateChange confirms a real session,
-    // never before. Nothing fetches or renders while signed out.
+    // showAppScreen() only once route() has confirmed the owner, never
+    // before. Nothing fetches or renders for anyone else.
+    const { data: { session: initialSession } } = await supabase.auth.getSession();
+    route(initialSession);
   </script>
   <script>
     // Registered purely so the browser offers "Install" -- see sw.js for

@@ -583,6 +583,12 @@
      Masterboard on this same website): decides what may show BEFORE the first
      paint, sends anyone but the signed-in owner to the Masterboard front door,
      and draws Sign out. -->
+<!-- Seamless (owner, 2026-10-02): dial the database and the library server
+     while the page is still arriving, and start fetching the library (one
+     pinned, bundled file: 7 requests instead of 17) before the script needs it. -->
+<link rel="preconnect" href="https://kenlhcatkjthhzuaznpg.supabase.co" crossorigin />
+<link rel="preconnect" href="https://esm.sh" crossorigin />
+<link rel="modulepreload" href="https://esm.sh/@supabase/supabase-js@2.117.2?bundle" />
 <script src="/primelevel-masterboard/door.js"></script>
 </head>
 <body>
@@ -611,7 +617,7 @@
   </div>
 
   <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.2?bundle';
 
     const SUPABASE_URL = 'https://kenlhcatkjthhzuaznpg.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_-gt5PPGL45s3hRsfOosH6g_q3yP-b-_';

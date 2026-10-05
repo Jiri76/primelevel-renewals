@@ -1077,6 +1077,7 @@
           // Rebuild only THIS row back to its normal view -- every other
           // row keeps whatever state it was already in (open or not).
           const updatedItem = { ...item, item_name: newName, expiry_date: isoDate };
+          openRows.delete(row);
           row.replaceWith(buildItemRow(updatedItem));
         } else {
           setError(errorEl, 'Could not save — please check your connection and try again.');
@@ -1090,6 +1091,7 @@
         if (!error) {
           // Remove only THIS row -- every other open edit panel is
           // untouched, same reasoning as Save above.
+          openRows.delete(row);
           row.remove();
           if (!itemList.children.length) {
             itemList.innerHTML = '<div class="empty-state">Nothing tracked yet — add your first renewal above.</div>';
@@ -1114,7 +1116,35 @@
       panel.append(editRow, errorEl);
       row.replaceChild(panel, countdown);
       name.remove();
+      openRows.set(row, item);
     }
+
+    // CLOSING AN OPEN ITEM (owner, 2026-10-05: an open card "just stays
+    // there"; the same rule on Renewals and Investments, "just mirror them";
+    // chosen for consistency with the "+" panel). An open item used to close
+    // only through Save or Delete. Now, like the "+" panel: a press anywhere
+    // outside it closes it WITHOUT saving (back to its normal row, the
+    // unsaved typing dropped); pressing another item opens that one and
+    // closes this one; Escape closes it. A press inside it (fields, Save,
+    // Delete) keeps it open. This check runs FIRST (capture phase), before
+    // the row's own opener: opening removes the name line that was pressed,
+    // so afterwards the press could no longer be traced to its row (found in
+    // testing 2026-10-05: it closed the row it had just opened).
+    const openRows = new Map(); // open row element -> its item as last saved
+    function closeOtherRows(keepRow) {
+      for (const [row, item] of openRows) {
+        if (row === keepRow) continue;
+        openRows.delete(row);
+        if (row.isConnected) row.replaceWith(buildItemRow(item));
+      }
+    }
+    document.addEventListener('mousedown', (e) => {
+      if (!openRows.size) return;
+      closeOtherRows(e.target.closest ? e.target.closest('.item') : null);
+    }, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && openRows.size) closeOtherRows(null);
+    });
 
     addBtn.addEventListener('click', async () => {
       setError(addDateError, '');

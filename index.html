@@ -755,7 +755,47 @@
       }
     });
 
-    // Listens on `mousedown`, not `click` -- deliberately. A `click`
+    // A PRESS, for every "press outside to close" on this page (the "+"
+    // panel and the items; owner, 2026-10-05: the same on every device).
+    // Mostly it is the browser's own mouse press: a mouse going down, or a
+    // finger tapping something that takes presses (an item, a button, a
+    // field, a link). But an iPhone sends that press ONLY for such things:
+    // a tap on plain text or empty background gets none, so those taps
+    // never closed anything there. They are caught here instead, when the
+    // finger LIFTS without having scrolled (the browser cancels a finger
+    // that starts a scroll, so scrolling down to reach Save never closes
+    // anything), and that tap's own late mouse press is cancelled: closing
+    // moves the page under the finger, and a late press lands on whatever
+    // moved there (found in testing: it opened the wrong item). "Takes
+    // presses" follows the iPhone's own rule: a link, button or field, or
+    // anything showing the pointing-hand cursor (every item and button
+    // here does). All checks run first (capture phase), before the items',
+    // the trigger's and the buttons' own handlers. Copied identically in
+    // Investments.
+    const pressHandlers = [];
+    function onPress(handler) { pressHandlers.push(handler); }
+    function takesPresses(el) {
+      for (let n = el; n && n.nodeType === 1 && n !== document.body; n = n.parentElement) {
+        if (n.matches('a[href], button, input, select, textarea, label') || getComputedStyle(n).cursor === 'pointer') return true;
+      }
+      return false;
+    }
+    document.addEventListener('mousedown', (e) => pressHandlers.forEach((h) => h(e.target)), true);
+    let plainFinger = null; // the plain spot a finger went down on, until it lifts or scrolls
+    document.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch' && e.isPrimary) plainFinger = takesPresses(e.target) ? null : e.target;
+    }, true);
+    document.addEventListener('pointercancel', () => { plainFinger = null; }, true);
+    document.addEventListener('touchend', (e) => {
+      const target = plainFinger;
+      plainFinger = null;
+      if (!target) return;
+      e.preventDefault(); // no late mouse press (see above)
+      if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // what a tap on plain space does
+      pressHandlers.forEach((h) => h(target));
+    }, { capture: true, passive: false });
+
+    // Listens for a press (see onPress), not `click` -- deliberately. A `click`
     // event only fires if the mouse goes down AND up on (near) the
     // same spot; any slight drift between the two (easy on a trackpad,
     // or just a big open background with lots of room to drift) makes
@@ -781,8 +821,8 @@
     // trigger circle, or the popover's own real card
     // (.add-popover-inner, which has a background/border painted right
     // up to its true edges here, unlike .add-wrapper).
-    document.addEventListener('mousedown', (e) => {
-      const clickedInsideWrapper = addTrigger.contains(e.target) || addPopoverInner.contains(e.target);
+    onPress((target) => {
+      const clickedInsideWrapper = addTrigger.contains(target) || addPopoverInner.contains(target);
 
       if (addWrapper.classList.contains('idle-hidden')) {
         // Currently hidden -- any click anywhere reveals it, UNLESS
@@ -1126,10 +1166,12 @@
     // outside it closes it WITHOUT saving (back to its normal row, the
     // unsaved typing dropped); pressing another item opens that one and
     // closes this one; Escape closes it. A press inside it (fields, Save,
-    // Delete) keeps it open. This check runs FIRST (capture phase), before
-    // the row's own opener: opening removes the name line that was pressed,
-    // so afterwards the press could no longer be traced to its row (found in
-    // testing 2026-10-05: it closed the row it had just opened).
+    // Delete) keeps it open. A press is the browser's own press, or a
+    // finger lifting on plain space without scrolling (onPress, above). This
+    // check runs FIRST,
+    // before the row's own opener: opening removes the name line that was
+    // pressed, so afterwards the press could no longer be traced to its row
+    // (found in testing 2026-10-05: it closed the row it had just opened).
     const openRows = new Map(); // open row element -> its item as last saved
     function closeOtherRows(keepRow) {
       for (const [row, item] of openRows) {
@@ -1138,10 +1180,10 @@
         if (row.isConnected) row.replaceWith(buildItemRow(item));
       }
     }
-    document.addEventListener('mousedown', (e) => {
+    onPress((target) => {
       if (!openRows.size) return;
-      closeOtherRows(e.target.closest ? e.target.closest('.item') : null);
-    }, true);
+      closeOtherRows(target.closest ? target.closest('.item') : null);
+    });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && openRows.size) closeOtherRows(null);
     });

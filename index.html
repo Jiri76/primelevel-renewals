@@ -849,6 +849,11 @@
       // Click landed outside the wrapper entirely -- close the popover
       // (if it was open) AND hide the "+" circle together, in this one
       // click, instantly.
+      dismissAdd();
+    });
+    // Closing the "+" panel from outside (a press outside it, or Escape):
+    // the typing is dropped (nothing saved) and the "+" hides with it.
+    function dismissAdd() {
       if (addPopover.classList.contains('open')) {
         // Snap shut instantly, no transition of its own -- the
         // wrapper's own collapse (below) is about to hide it anyway.
@@ -868,6 +873,11 @@
         wrapperCollapseFallbackTimer = setTimeout(clearWrapperCollapsingGate, 350);
       }
       hideTriggerNow();
+    }
+    // Escape closes the "+" panel exactly like a press outside it (owner,
+    // 2026-10-06: a new item "should be identical" to an existing one).
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && addPopover.classList.contains('open')) dismissAdd();
     });
     scheduleTriggerHide();
 

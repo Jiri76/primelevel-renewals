@@ -116,7 +116,7 @@
      trade-off, not a silent drift. */
   .add-wrapper {
     margin-top: 83px; /* was 100 (owner 2026-09-28): title letters' baseline -> "+" circle edge = 100px BY EYE (15px of title box below the baseline + 83 + this wrapper's 2px padding-top) */
-    margin-bottom: 100px;
+    margin-bottom: 98px; /* was 100 (owner 2026-10-06: "one hundred all the way"): circle edge -> first renewal card = 100px BY EYE (98 + this wrapper's 2px padding-bottom), the same as the title -> circle above it and as Investments; the open "+" panel -> list gets the same 100 */
     padding-top: 2px;
     padding-bottom: 2px;
     max-height: 260px;
@@ -536,12 +536,19 @@
   /* Top padding removed -- the 100px gap above this text now comes
      entirely from .add-wrapper's own margin-bottom, so the two don't
      stack into 140px. Bottom padding (40px) left exactly as it was --
-     that wasn't part of what was asked to change. */
+     that wasn't part of what was asked to change.
+     margin-top -4px (owner, 2026-10-06: "one hundred all the way"): the
+     letters start 4px below the top of their own line, so without it the
+     circle -> "Nothing tracked yet" gap measured 106 by eye (and 104 with
+     the circle hidden, from the title). With it the LETTERS sit exactly
+     100 below the circle, the open "+" panel and (circle hidden) the
+     title, like every other 100 on these pages. */
   .empty-state {
     color: var(--placeholder);
     font-size: 20px;
     text-align: center;
     padding: 0 0 40px;
+    margin-top: -4px;
   }
 
   /* RESPONSIVE (owner, 2026-09-28: every page must fit every device).

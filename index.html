@@ -809,7 +809,30 @@
       }
       return false;
     }
+    // TEMPORARY TAP LOG (2026-10-10: on the owner's iPhone the 2nd tap after
+    // the keyboard closed did nothing, the 3rd closed the card). Only with
+    // ?taplog in the address: every finger, scroll, screen and cursor event
+    // and what the page decided, listed under the top strip, never catching
+    // a tap. DELETE once diagnosed.
+    const TAPLOG = /[?&]taplog/.test(location.search) ? (() => {
+      const el = document.createElement('div');
+      el.style.cssText = 'position:fixed;left:0;right:0;top:56px;z-index:8;background:rgba(42,52,65,.94);color:#F9F9FA;font:11px/1.35 -apple-system,Arial,sans-serif;padding:6px 10px;pointer-events:none;max-height:40vh;overflow:hidden';
+      document.body.appendChild(el);
+      const t0 = performance.now(), lines = [];
+      const log = (s) => { lines.unshift(`${((performance.now() - t0) / 1000).toFixed(2)}s ${s}`); lines.length = Math.min(lines.length, 16); el.innerHTML = lines.join('<br>'); };
+      const what = (n) => (n && typeof n.className === 'string' && n.className ? '.' + n.className.split(' ')[0] : (n && n.tagName ? n.tagName.toLowerCase() : '?'));
+      let lastY = window.scrollY;
+      window.addEventListener('scroll', () => { if (Math.abs(window.scrollY - lastY) >= 2) { log(`page scrolled ${Math.round(lastY)} -> ${Math.round(window.scrollY)}`); lastY = window.scrollY; } }, { passive: true });
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', () => log(`screen height ${Math.round(window.visualViewport.height)}`));
+      document.addEventListener('focusin', (e) => log(`cursor IN ${what(e.target)}`));
+      document.addEventListener('focusout', (e) => log(`cursor OUT ${what(e.target)}`));
+      document.addEventListener('pointercancel', () => log('phone: pointercancel'), true);
+      document.addEventListener('touchstart', (e) => log(`finger DOWN on ${what(e.target)} y=${Math.round(e.touches[0].clientY)} page=${Math.round(window.scrollY)}`), { capture: true, passive: true });
+      log('tap log on');
+      return log;
+    })() : null;
     document.addEventListener('mousedown', (e) => {
+      if (TAPLOG) TAPLOG(`mouse press on ${e.target && e.target.className ? '.' + String(e.target.className).split(' ')[0] : e.target.tagName}`);
       // See THE KEYBOARD FIRST below. The items and the buttons act on this
       // press itself (mousedown), so it is stopped here, before them.
       if (keyboardFirst(e.target)) { e.stopImmediatePropagation(); e.preventDefault(); swallowClick = true; return; }
@@ -833,13 +856,14 @@
     document.addEventListener('touchend', (e) => {
       const target = plainFinger, from = fingerFrom;
       plainFinger = null; fingerFrom = null;
-      if (!target || !from || e.touches.length) return; // not plain space, or another finger still down
+      if (!target || !from || e.touches.length) { if (TAPLOG) TAPLOG(`finger UP: not judged here (${!from ? 'no finger-down seen' : !target ? 'not plain space' : 'another finger'})`); return; } // not plain space, or another finger still down
       const lift = e.changedTouches[0];
       const moved = Math.hypot(lift.clientX - from.x, lift.clientY - from.y);
       const scrolled = Math.max(Math.abs(window.scrollY - from.sy), Math.abs(window.scrollX - from.sx));
-      if (moved >= 20 || scrolled >= 8) return; // a real swipe or scroll: nothing closes
+      if (moved >= 20 || scrolled >= 8) { if (TAPLOG) TAPLOG(`finger UP: IGNORED as a scroll (finger moved ${Math.round(moved)}, page moved ${Math.round(scrolled)})`); return; } // a real swipe or scroll: nothing closes
       if (e.cancelable) e.preventDefault(); // no late mouse press (see above)
-      if (keyboardFirst(target)) return; // only the keyboard closed (see THE KEYBOARD FIRST below)
+      if (keyboardFirst(target)) { if (TAPLOG) TAPLOG('finger UP: keyboard first (keyboard closed, card stays)'); return; } // only the keyboard closed (see THE KEYBOARD FIRST below)
+      if (TAPLOG) TAPLOG(`finger UP: TAP (finger moved ${Math.round(moved)}, page moved ${Math.round(scrolled)}, cancelable ${e.cancelable}) -> press outside`);
       if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // what a tap on plain space does
       pressHandlers.forEach((h) => h(target));
     }, { capture: true, passive: false });
@@ -909,6 +933,7 @@
     // up to its true edges here, unlike .add-wrapper).
     onPress((target) => {
       const clickedInsideWrapper = addTrigger.contains(target) || addPopoverInner.contains(target);
+      if (TAPLOG) TAPLOG(`"+" check: pressed ${clickedInsideWrapper ? 'INSIDE the card/"+"' : 'outside'}${addWrapper.classList.contains('idle-hidden') ? ', "+" was hidden' : ''}`);
 
       if (addWrapper.classList.contains('idle-hidden')) {
         // Currently hidden -- any click anywhere reveals it, UNLESS
@@ -940,6 +965,7 @@
     // Closing the "+" panel from outside (a press outside it, or Escape):
     // the typing is dropped (nothing saved) and the "+" hides with it.
     function dismissAdd() {
+      if (TAPLOG) TAPLOG(`dismissAdd: card ${addPopover.classList.contains('open') ? 'CLOSES' : 'was not open'}`);
       if (addPopover.classList.contains('open')) {
         // Snap shut instantly, no transition of its own -- the
         // wrapper's own collapse (below) is about to hide it anyway.
